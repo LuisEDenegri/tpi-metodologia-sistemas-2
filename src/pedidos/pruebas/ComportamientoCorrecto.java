@@ -67,6 +67,7 @@ public class ComportamientoCorrecto {
         importesConFormatoDeMoneda(v);
         ordenDeterminista(v);
         estadoInternoEncapsulado(v);
+        defectosDetectadosEnLaRevision(v);
 
         boolean ok = v.resumen();
         System.out.println();
@@ -256,6 +257,166 @@ public class ComportamientoCorrecto {
         for (Pedido p : r2) o2.append(p.numero()).append(" ");
         v.igual("dos busquedas identicas devuelven el mismo orden",
                 o1.toString(), o2.toString());
+    }
+
+    /**
+     * Defectos encontrados por la REVISION DE CODIGO del sistema refactorizado.
+     *
+     * Estos casos no vienen del diagnostico del sistema base: son defectos que
+     * el propio refactoring introdujo o reabrio mientras corregia otros. Esa es
+     * la leccion mas incomoda del trabajo, y por eso quedan documentados aparte
+     * en vez de mezclados con los anteriores: refactorizar con una red de
+     * pruebas reduce el riesgo, no lo elimina. La red cubre lo que alguien
+     * penso en cubrir.
+     *
+     * Los cinco fueron verificados ejecutando codigo antes de corregirlos, y
+     * estos casos existen para que no vuelvan.
+     */
+    static void defectosDetectadosEnLaRevision(Verificador v) {
+        datosDeContactoNoSeBorran(v);
+        busquedaNoPuedeMutarLaBase(v);
+        provinciaSeComparaIgualEnTodosLados(v);
+        elPedidoGuardaSuDestino(v);
+        coleccionesExpuestasSonInmutables(v);
+    }
+
+    /**
+     * C-1. Un pedido valido que no trae datos de contacto NO debe borrarlos.
+     *
+     * Defecto introducido al corregir el de los datos congelados: la
+     * actualizacion paso a ser incondicional y, como la solicitud no exige
+     * nombre ni email, un pedido legitimo sin esos campos vaciaba el cliente.
+     * Al quedarse sin mail dejaba de recibir toda notificacion futura.
+     */
+    static void datosDeContactoNoSeBorran(Verificador v) {
+        PedidoManager m = conStock();
+        m.registrar(new SolicitudDePedido("1", "Maria", "maria@x.com", "261",
+                new Direccion("Calle 1", "Ciudad", "Mendoza", "5500"),
+                "VIN-MALBEC-750", 1, TipoEnvio.RETIRO, "", false));
+        m.registrar(new SolicitudDePedido("1", null, null, null,
+                new Direccion("Calle 2", "Ciudad", "Mendoza", "5500"),
+                "VIN-MALBEC-750", 1, TipoEnvio.RETIRO, "", false));
+
+        v.igual("un pedido sin nombre no borra el nombre del cliente",
+                "Maria", m.getCliente("1").nombre());
+        v.igual("un pedido sin mail no borra el mail del cliente",
+                "maria@x.com", m.getCliente("1").email());
+        v.igual("pero la direccion que SI trae se actualiza",
+                "Calle 2", m.getCliente("1").direccion().calle());
+    }
+
+    /** C-3. Una consulta de solo lectura no puede modificar la base. */
+    static void busquedaNoPuedeMutarLaBase(Verificador v) {
+        PedidoManager m = conStock();
+        m.registrar(new SolicitudDePedido("1", "A", "a@x.com", "2",
+                new Direccion("Calle 1", "Ciudad", "Mendoza", "5500"),
+                "VIN-MALBEC-750", 1, TipoEnvio.RETIRO, "", false));
+
+        FiltroHostil hostil = new FiltroHostil();
+        m.buscar(hostil);
+
+        boolean protegido;
+        try {
+            hostil.capturado.clear();
+            protegido = false;
+        } catch (UnsupportedOperationException e) {
+            protegido = true;
+        }
+        v.cierto("el filtro no puede vaciar el mapa de clientes", protegido);
+        v.igual("el cliente sigue existiendo despues de la busqueda",
+                1, m.clientes().size());
+    }
+
+    /**
+     * Subclase hostil: el filtro es un punto de extension publico, asi que
+     * cualquiera puede escribir esto. La prueba existe porque el refactoring
+     * creo ese punto de extension y hay que probar que esta protegido.
+     */
+    static class FiltroHostil extends FiltroDePedidos {
+        java.util.Map<String, pedidos.Cliente> capturado;
+
+        @Override
+        public boolean aceptaA(Pedido p, java.util.Map<String, pedidos.Cliente> clientes) {
+            this.capturado = clientes;
+            return super.aceptaA(p, clientes);
+        }
+    }
+
+    /**
+     * C-4. El sistema no puede cobrar segun una regla y listar segun otra.
+     *
+     * ZonaEnvio normalizaba la provincia (trim + ignore case) y el filtro de
+     * busqueda no. Un pedido cargado como "mendoza" se cobraba con tarifa de
+     * Mendoza pero no aparecia al buscar "Mendoza".
+     */
+    static void provinciaSeComparaIgualEnTodosLados(Verificador v) {
+        PedidoManager m = conStock();
+        String n = m.registrar(new SolicitudDePedido("1", "A", "a@x.com", "2",
+                new Direccion("Calle 1", "Ciudad", "mendoza", "5500"),
+                "VIN-MALBEC-750", 1, TipoEnvio.ENVIO, "", false));
+
+        v.igual("se cobra con tarifa de Mendoza", Dinero.de(1200), m.getPedido(n).envio());
+        v.igual("y aparece al buscar 'Mendoza'", 1,
+                m.buscar(new FiltroDePedidos().enProvincia("Mendoza")).size());
+        v.igual("y tambien al buscar '  mendoza  '", 1,
+                m.buscar(new FiltroDePedidos().enProvincia("  mendoza  ")).size());
+    }
+
+    /**
+     * I-1. Un pedido historico conserva el destino con el que se cotizo.
+     *
+     * Antes el destino se leia del Cliente, que es mutable: un cliente que
+     * pedia a Mendoza y despues a Cordoba dejaba el primer pedido facturado
+     * con flete de Mendoza pero listado como de Cordoba.
+     */
+    static void elPedidoGuardaSuDestino(Verificador v) {
+        PedidoManager m = conStock();
+        String p1 = m.registrar(new SolicitudDePedido("1", "Maria", "m@x.com", "2",
+                new Direccion("Calle 1", "Ciudad", "Mendoza", "5500"),
+                "VIN-MALBEC-750", 1, TipoEnvio.ENVIO, "", false));
+        String p2 = m.registrar(new SolicitudDePedido("1", "Maria", "m@x.com", "2",
+                new Direccion("Calle 2", "Ciudad", "Cordoba", "5000"),
+                "VIN-MALBEC-750", 1, TipoEnvio.ENVIO, "", false));
+
+        v.igual("el primer pedido conserva su provincia de entrega",
+                "Mendoza", m.getPedido(p1).provinciaDeEntrega());
+        v.igual("el segundo tiene la suya", "Cordoba", m.getPedido(p2).provinciaDeEntrega());
+        v.igual("el pedido cotizado a Mendoza se lista en Mendoza", 1,
+                m.buscar(new FiltroDePedidos().enProvincia("Mendoza")).size());
+        v.igual("y el de Cordoba en Cordoba", 1,
+                m.buscar(new FiltroDePedidos().enProvincia("Cordoba")).size());
+        v.cierto("cada uno conserva el flete con el que se cobro",
+                m.getPedido(p1).envio().equals(Dinero.de(1200))
+                        && m.getPedido(p2).envio().equals(Dinero.de(4500)));
+    }
+
+    /**
+     * I-2. Las tres colecciones expuestas tienen el mismo contrato.
+     *
+     * stock() devolvia una copia mutable: el put se aceptaba en silencio y
+     * quien lo hacia creia haber cambiado el inventario.
+     */
+    static void coleccionesExpuestasSonInmutables(Verificador v) {
+        PedidoManager m = conStock();
+        m.registrar(new SolicitudDePedido("1", "A", "a@x.com", "2",
+                new Direccion("Calle 1", "Ciudad", "Mendoza", "5500"),
+                "VIN-MALBEC-750", 1, TipoEnvio.RETIRO, "", false));
+
+        v.cierto("stock() rechaza la escritura", lanzaAlEscribir(() -> m.stock().put("X", -999)));
+        v.cierto("pedidos() rechaza la escritura",
+                lanzaAlEscribir(() -> m.pedidos().remove("PED-1")));
+        v.cierto("clientes() rechaza la escritura",
+                lanzaAlEscribir(() -> m.clientes().clear()));
+        v.igual("y el estado real queda intacto", 499, m.stockDe("VIN-MALBEC-750"));
+    }
+
+    static boolean lanzaAlEscribir(Runnable accion) {
+        try {
+            accion.run();
+            return false;
+        } catch (UnsupportedOperationException e) {
+            return true;
+        }
     }
 
     /**

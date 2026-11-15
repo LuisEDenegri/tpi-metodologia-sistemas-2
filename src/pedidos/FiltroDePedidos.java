@@ -73,12 +73,47 @@ public class FiltroDePedidos {
         return estado == null || p.estado() == estado;
     }
 
+    /**
+     * CORRECCION: la comparacion de provincia era sensible a mayusculas y a
+     * espacios, mientras que ZonaEnvio.deProvincia (que decide cuanto se cobra
+     * de flete) normaliza con trim + equalsIgnoreCase.
+     *
+     * Dos criterios distintos para el mismo dato producian una incoherencia
+     * visible: un pedido cargado como "mendoza" se cobraba con tarifa de
+     * Mendoza pero NO aparecia al buscar por "Mendoza". El sistema cobraba
+     * segun una regla y listaba segun otra.
+     *
+     * Se normaliza igual que ZonaEnvio. La forma de fondo seria filtrar por
+     * ZonaEnvio en lugar de por texto libre, pero eso cambia la firma publica
+     * del filtro; se deja anotado como mejora.
+     *
+     * ponytail: techo deliberado. Si la provincia pasa a ser un concepto del
+     * dominio (y no un String), este metodo desaparece.
+     *
+     * SEGUNDA CORRECCION: ahora se filtra por la provincia DEL PEDIDO y no por
+     * la del cliente. El cliente es mutable y refleja siempre su ultimo pedido,
+     * asi que buscar por su provincia hacia que un pedido viejo apareciera bajo
+     * un destino al que nunca se envio. El pedido guarda el destino con el que
+     * se cotizo, que es el dato correcto para un listado historico. Se consulta
+     * al cliente solo si el pedido no tiene direccion (retiro en local).
+     */
     private boolean cumpleProvincia(Pedido p, Map<String, Cliente> clientes) {
         if (provincia == null) {
             return true;
         }
+        String provinciaDelPedido = p.provinciaDeEntrega();
+        if (provinciaDelPedido != null) {
+            return mismaProvincia(provincia, provinciaDelPedido);
+        }
         Cliente c = clientes.get(p.documentoCliente());
-        return c != null && provincia.equals(c.provincia());
+        return c != null && mismaProvincia(provincia, c.provincia());
+    }
+
+    private static boolean mismaProvincia(String a, String b) {
+        if (a == null || b == null) {
+            return a == b;
+        }
+        return a.trim().equalsIgnoreCase(b.trim());
     }
 
     private boolean cumpleMonto(Pedido p) {

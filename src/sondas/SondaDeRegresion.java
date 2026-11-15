@@ -451,8 +451,22 @@ public class SondaDeRegresion {
             pedidosProtegidos = true;
         }
 
-        Pedido p = m.getPedido(n);
-        boolean transicionProtegida = !p.cambiarEstadoA(EstadoPedido.ENTREGADO);
+        // La transicion invalida se pide por el manager, que es el unico camino
+        // disponible desde afuera del paquete.
+        //
+        // Esta sonda vive en el paquete `sondas`, no en `pedidos`, y eso ahora
+        // importa: la linea que antes decia
+        //
+        //     p.cambiarEstadoA(EstadoPedido.ENTREGADO)
+        //
+        // YA NO COMPILA. El compilador la rechaza con "cambiarEstadoA is not
+        // public in Pedido; cannot be accessed from outside package". Ese error
+        // de compilacion es, en si mismo, la verificacion mas fuerte del
+        // encapsulamiento: el agujero no esta cerrado por una validacion en
+        // tiempo de ejecucion que alguien podria saltear, sino por el sistema
+        // de tipos. Codigo externo que intente cancelar un pedido por afuera
+        // del manager no llega a ejecutarse porque no llega a compilar.
+        boolean transicionProtegida = !m.cambiarEstado(n, EstadoPedido.ENTREGADO);
 
         System.out.println("  intento de stock -999      -> stock real "
                 + m.stockDe("VIN-MALBEC-750") + " (esperado " + stockEsperado + ")");

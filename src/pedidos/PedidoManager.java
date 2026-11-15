@@ -181,11 +181,23 @@ public class PedidoManager {
         return true;
     }
 
+    /**
+     * CORRECCION DE SEGURIDAD: el filtro recibe los clientes como vista
+     * inmutable y no como el mapa interno.
+     *
+     * El filtro es un punto de extension: cualquiera puede heredar de
+     * FiltroDePedidos y redefinir aceptaA. Pasarle el LinkedHashMap vivo
+     * significaba que una subclase podia quedarse la referencia y vaciar la
+     * base de clientes con un clear(). Una consulta de solo lectura borraba
+     * datos. El refactoring introdujo ese punto de extension y hay que
+     * protegerlo: quien extiende no tiene por que poder escribir.
+     */
     public List<Pedido> buscar(FiltroDePedidos filtro) {
         FiltroDePedidos efectivo = filtro == null ? new FiltroDePedidos() : filtro;
+        Map<String, Cliente> soloLectura = Collections.unmodifiableMap(clientes);
         List<Pedido> resultado = new ArrayList<>();
         for (Pedido p : pedidos.values()) {
-            if (efectivo.aceptaA(p, clientes)) {
+            if (efectivo.aceptaA(p, soloLectura)) {
                 resultado.add(p);
             }
         }
@@ -197,7 +209,8 @@ public class PedidoManager {
     }
 
     public String reporte() {
-        return generadorDeReporte.generar(pedidos.values(), clientes);
+        return generadorDeReporte.generar(Collections.unmodifiableCollection(pedidos.values()),
+                Collections.unmodifiableMap(clientes));
     }
 
     /**

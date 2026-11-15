@@ -38,13 +38,45 @@ public class Cliente {
     /**
      * Actualiza los datos de contacto con los del pedido mas reciente.
      * El documento no se toca: es la identidad del cliente.
+     *
+     * REGLA: un pedido actualiza los datos que TRAE; no borra los que no trae.
+     * Un campo vacio o null significa "este pedido no aporta ese dato", no
+     * "borrar el dato que ya teniamos".
+     *
+     * Esta guarda cierra un defecto que introdujo el propio refactoring. Al
+     * corregir el defecto de los datos congelados, la actualizacion paso a ser
+     * incondicional; como SolicitudDePedido no exige nombre, email ni telefono,
+     * un pedido perfectamente valido sin esos campos borraba los datos buenos
+     * del cliente. Peor: al quedarse sin mail, el cliente dejaba de recibir
+     * TODA notificacion futura. Se corregia un defecto creando otro.
+     *
+     * Se eligio esta regla y no "validar el contacto en la solicitud" porque el
+     * dato obligatorio del negocio es el documento: es lo que identifica a
+     * quien compra. Exigir mail rechazaria pedidos legitimos tomados por
+     * telefono o en mostrador. Entre perder un dato y perder una venta, se
+     * conserva el dato.
+     *
+     * Visibilidad de paquete: el estado del cliente lo coordina PedidoManager,
+     * no el codigo externo que recibe el Cliente desde clientes() o getCliente().
      */
-    public void actualizarDatosDeContacto(String nombre, String email, String telefono,
-                                          Direccion direccion) {
-        this.nombre = nombre;
-        this.email = email;
-        this.telefono = telefono;
-        this.direccion = direccion;
+    void actualizarDatosDeContacto(String nombre, String email, String telefono,
+                                   Direccion direccion) {
+        if (!esVacio(nombre)) {
+            this.nombre = nombre;
+        }
+        if (!esVacio(email)) {
+            this.email = email;
+        }
+        if (!esVacio(telefono)) {
+            this.telefono = telefono;
+        }
+        if (direccion != null) {
+            this.direccion = direccion;
+        }
+    }
+
+    private static boolean esVacio(String valor) {
+        return valor == null || valor.trim().isEmpty();
     }
 
     public String documento() {

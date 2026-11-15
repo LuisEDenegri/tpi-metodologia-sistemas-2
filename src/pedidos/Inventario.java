@@ -1,5 +1,6 @@
 package pedidos;
 
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -89,8 +90,18 @@ public class Inventario {
         return disponible(codigoProducto) < UMBRAL_DE_STOCK_BAJO;
     }
 
-    /** Copia de solo lectura. El mapa interno no se expone. */
+    /**
+     * Vista de solo lectura. El mapa interno no se expone.
+     *
+     * Es copia Y es inmutable, y las dos cosas hacen falta por motivos
+     * distintos: la copia evita que una escritura externa toque el inventario
+     * real, y el envoltorio inmutable hace que esa escritura FALLE en vez de
+     * aceptarse en silencio sobre una copia que nadie va a leer. Antes devolvia
+     * solo la copia: quien hacia put() creia haber cambiado el stock y se
+     * enteraba tarde. Ademas unifica el contrato con pedidos() y clientes(),
+     * que ya devolvian vistas inmutables.
+     */
     public Map<String, Integer> comoMapa() {
-        return new LinkedHashMap<>(stockPorProducto);
+        return Collections.unmodifiableMap(new LinkedHashMap<>(stockPorProducto));
     }
 }

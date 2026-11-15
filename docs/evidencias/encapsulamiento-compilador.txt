@@ -1,0 +1,32 @@
+EVIDENCIA: el encapsulamiento lo garantiza el compilador
+========================================================
+
+Codigo cliente REAL (fuera del paquete pedidos) intentando
+mutar el dominio por afuera del coordinador:
+
+package externo;
+import pedidos.*;
+public class Ataque {
+    public static void main(String[] a) {
+        PedidoManager m = new PedidoManager(new NotificadorSilencioso());
+        m.ingresarStock("P", 50);
+        String n = m.registrar(new SolicitudDePedido("1","A","a@x.com","2",
+                new Direccion("C","C","Mendoza","5500"),"P",10,TipoEnvio.RETIRO,"",false));
+        m.getPedido(n).cambiarEstadoA(EstadoPedido.CANCELADO);
+        m.getPedido(n).asignarResponsable("intruso", "X");
+        m.getCliente("1").actualizarDatosDeContacto(null, null, null, null);
+    }
+}
+
+Resultado de javac:
+
+C:\Users\ldenegri\AppData\Local\Temp\verif3\externo\Ataque.java:9: error: cambiarEstadoA(EstadoPedido) is not public in Pedido; cannot be accessed from outside package
+        m.getPedido(n).cambiarEstadoA(EstadoPedido.CANCELADO);
+                      ^
+C:\Users\ldenegri\AppData\Local\Temp\verif3\externo\Ataque.java:10: error: asignarResponsable(String,String) is not public in Pedido; cannot be accessed from outside package
+        m.getPedido(n).asignarResponsable("intruso", "X");
+                      ^
+C:\Users\ldenegri\AppData\Local\Temp\verif3\externo\Ataque.java:11: error: actualizarDatosDeContacto(String,String,String,Direccion) is not public in Cliente; cannot be accessed from outside package
+        m.getCliente("1").actualizarDatosDeContacto(null, null, null, null);
+                         ^
+3 errors
