@@ -323,5 +323,43 @@ public class CaracterizacionBase {
         pedir(m4, "1", "Mendoza", "VIN-MALBEC-750", 1, "RETIRO", false);
         v.yaNoOcurre("un pedido PENDIENTE ya contaba como facturado",
                 Dinero.de(8500), m4.totalFacturado());
+
+        defectoQueSigueAbierto(v);
+    }
+
+    /**
+     * D-03: UNICO defecto confirmado que NO se corrigio.
+     *
+     * Este caso usa v.igual y no v.yaNoOcurre, y la diferencia no es un
+     * descuido: congela el valor defectuoso porque el defecto sigue vivo. Es
+     * caracterizacion en su sentido estricto, que documenta la verdad aunque la
+     * verdad incomode.
+     *
+     * El escenario: se reserva stock para un pedido, el deposito hace un
+     * recuento fisico que FIJA la existencia real, y despues se cancela aquel
+     * pedido viejo. La cancelacion repone a ciegas y aparecen 10 unidades que
+     * nadie conto.
+     *
+     * No se corrigio porque la causa de fondo es que el sistema no modela stock
+     * RESERVADO: al cancelar no tiene forma de saber si su reserva sobrevivio
+     * al recuento. Resolverlo bien exige introducir reservas como concepto del
+     * dominio, lo que excede el alcance del trabajo. Se prefirio dejarlo
+     * abierto y documentado antes que taparlo con un parche que diera la
+     * apariencia de estar resuelto.
+     *
+     * Si alguna vez se implementan las reservas, este caso se pondra en rojo.
+     * Ese rojo sera la senal de que el defecto se corrigio y de que toca
+     * reformularlo con v.yaNoOcurre, igual que se hizo con los otros siete.
+     */
+    static void defectoQueSigueAbierto(Verificador v) {
+        PedidoManager m = new PedidoManager(new NotificadorSilencioso());
+        m.ingresarStock("ACE-OLIVA-500", 30);
+        String p = pedir(m, "1", "Mendoza", "ACE-OLIVA-500", 10, "RETIRO", false);
+
+        m.fijarStock("ACE-OLIVA-500", 100);
+        m.cambiarEstado(p, EstadoPedido.CANCELADO);
+
+        v.igual("D-03 ABIERTO: cancelar tras un recuento inventa unidades",
+                110, m.stockDe("ACE-OLIVA-500"));
     }
 }

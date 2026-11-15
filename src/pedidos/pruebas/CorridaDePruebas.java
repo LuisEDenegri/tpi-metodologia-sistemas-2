@@ -58,8 +58,19 @@ public class CorridaDePruebas {
             System.out.println("  >> Sin regresiones. Quedan " + correcto.fallidas
                     + " defectos por corregir.");
         } else {
-            System.out.println("  >> Sin regresiones y sin defectos pendientes.");
+            System.out.println("  >> Sin regresiones. Todos los defectos que este trabajo");
+            System.out.println("     se propuso corregir estan corregidos.");
         }
+        System.out.println();
+        // Verde no significa "sistema sin defectos". Significa "sin regresiones
+        // y sin defectos pendientes DE LOS QUE ESTE TRABAJO ASUMIO". Hay uno
+        // confirmado que se decidio no corregir, y una corrida en verde que no
+        // lo mencionara daria una impresion falsa del estado del sistema.
+        System.out.println("  Defecto confirmado que sigue ABIERTO por decision explicita:");
+        System.out.println("    D-03  cancelar un pedido despues de un recuento fisico de");
+        System.out.println("          deposito repone stock que el recuento ya no contemplaba.");
+        System.out.println("          Requiere modelar stock reservado; excede el alcance.");
+        System.out.println("          Congelado en CaracterizacionBase.defectoQueSigueAbierto().");
         System.out.println();
         if (!detallado) {
             System.out.println("  (para ver caso por caso: --detallado)");

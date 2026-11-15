@@ -2,111 +2,13 @@
 #########################################################
 #  CORRIDA DE PRUEBAS - Sistema de Gestion de Pedidos   #
 #########################################################
-  =========================================================
-  =========================================================
-  [OK]    precio del vino por unidad
-  [OK]    precio del aceite
-  [OK]    precio del dulce
-  [OK]    precio de frutos secos
-  [OK]    precio por defecto de un codigo desconocido
-  [OK]    el subtotal multiplica por la cantidad
-  [OK]    flete a Mendoza
-  [OK]    flete a CABA
-  [OK]    flete a Buenos Aires
-  [OK]    flete al interior
-  [OK]    el retiro en local no paga flete
-  [OK]    el urgente recarga el flete un 50%
-  [OK]    sobre 25000 el flete es gratis
-  [OK]    el total suma subtotal mas flete
-  [OK]    un pedido nuevo nace PENDIENTE
-  [OK]    PENDIENTE avanza a PAGADO
-  [OK]    PAGADO avanza a PREPARACION
-  [OK]    PREPARACION avanza a DESPACHADO
-  [OK]    DESPACHADO avanza a ENTREGADO
-  [OK]    el pedido termina ENTREGADO
-  [OK]    no se puede saltear de PENDIENTE a ENTREGADO
-  [OK]    el pedido no cambio de estado tras la transicion invalida
-  [OK]    no se acepta un estado inventado
-  [OK]    no se puede cambiar el estado de un pedido inexistente
-  [OK]    PENDIENTE se puede cancelar
-  [OK]    CANCELADO es terminal: no se recancela
-  [OK]    CANCELADO es terminal: no revive a PAGADO
-  [OK]    PAGADO tambien se puede cancelar
-  [OK]    desde PREPARACION ya no se puede cancelar
-  [OK]    se asigna responsable
-  [OK]    queda guardado el responsable
-  [OK]    queda guardada el area
-  [OK]    no se asigna a un pedido inexistente
-  [OK]    el stock cargado se consulta
-  [OK]    un producto no cargado tiene stock cero
-  [OK]    el pedido descuenta del stock
-  [OK]    sin stock suficiente devuelve null
-  [OK]    el stock no se toca si el pedido se rechaza
-  [OK]    cancelar repone el stock
-  [OK]    se puede pedir exactamente todo el stock
-  [OK]    el stock queda en cero
-  [OK]    sin filtros devuelve todo
-  [OK]    filtra por estado
-  [OK]    filtra por provincia
-  [OK]    filtra por urgencia
-  [OK]    filtra por producto
-  [OK]    filtra por monto minimo
-  [OK]    todo resultado supera el monto pedido
-  [OK]    todo resultado supera el monto pedido
-  [OK]    todo resultado supera el monto pedido
-  [OK]    combinar filtros los aplica juntos
-  [OK]    filtros sin coincidencia devuelven vacio
-  [OK]    el pedido urgente es el de Cordoba
-  [OK]    el reporte tiene encabezado
-  [OK]    lista cada pedido
-  [OK]    cuenta los pagados
-  [OK]    cuenta los cancelados
-  [OK]    informa el facturado
-  [OK]    el cancelado no suma al facturado
-  [OK]    marca los urgentes
-  [OK]    el pedido urgente existe
-  =========================================================
-  =========================================================
-  [OK]    bajo el umbral el flete normal es la tarifa de zona
-  [OK]    bajo el umbral el urgente paga tarifa mas 50%
-  [OK]    sobre el umbral el flete estandar se bonifica
-  [OK]    sobre el umbral el urgente igual paga el adicional de urgencia
-  [OK]    un pedido urgente nunca cuesta lo mismo que uno normal
-  [OK]    el subtotal de prueba es exactamente el umbral
-  [OK]    un subtotal de exactamente 25000 ya tiene envio bonificado
-  [OK]    un pedido de cantidad cero se rechaza
-  [OK]    un pedido de cantidad negativa se rechaza
-  [OK]    una cantidad negativa no altera el stock
-  [OK]    ningun pedido registrado tiene importe negativo
-  [OK]    el pedido sin stock se rechaza
-  [OK]    un pedido rechazado no da de alta al cliente
-  [OK]    un pedido rechazado no deja pedidos registrados
-  [OK]    dos ingresos de mercaderia se acumulan
-  [OK]    'retiro' en minuscula se acepta
-  [OK]    'retiro' en minuscula no paga flete
-  [OK]    el tipo de envio tolera espacios alrededor
-  [OK]    el tipo con espacios no paga flete
-  [OK]    un tipo de envio inexistente se rechaza
-  [OK]    el mail del cliente se actualiza
-  [OK]    la provincia del cliente se actualiza
-  [OK]    la calle del cliente se actualiza
-  [OK]    un pedido pendiente no cuenta como facturado
-  [OK]    un pedido pagado cuenta como facturado
-  [OK]    un pedido cancelado no cuenta como facturado
-  [OK]    el reporte no usa notacion cientifica
-  [OK]    el reporte formatea el importe con separador de miles
-  [OK]    el reporte sale en orden de creacion
-  [OK]    dos busquedas identicas devuelven el mismo orden
-  [OK]    PedidoManager no expone campos publicos mutables
-  [OK]    Pedido no expone campos publicos mutables
-  [OK]    Cliente no expone campos publicos mutables
 
 #########################################################
 #  RESUMEN                                              #
 #########################################################
 
   CARACTERIZACION DEL SISTEMA BASE
-    61 pasadas, 0 fallidas
+    62 pasadas, 0 fallidas
     Fija el comportamiento actual. Debe estar siempre en verde:
     un rojo aca es una regresion introducida por un refactoring.
 
@@ -115,5 +17,14 @@
     Define el comportamiento deseado. Arranca en rojo:
     cada caso que pasa a verde es un defecto corregido.
 
-  >> Sin regresiones y sin defectos pendientes.
+  >> Sin regresiones. Todos los defectos que este trabajo
+     se propuso corregir estan corregidos.
+
+  Defecto confirmado que sigue ABIERTO por decision explicita:
+    D-03  cancelar un pedido despues de un recuento fisico de
+          deposito repone stock que el recuento ya no contemplaba.
+          Requiere modelar stock reservado; excede el alcance.
+          Congelado en CaracterizacionBase.defectoQueSigueAbierto().
+
+  (para ver caso por caso: --detallado)
 
