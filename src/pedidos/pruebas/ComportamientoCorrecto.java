@@ -3,6 +3,13 @@ package pedidos.pruebas;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.util.List;
+import pedidos.Dinero;
+import pedidos.Direccion;
+import pedidos.EstadoPedido;
+import pedidos.FiltroDePedidos;
+import pedidos.NotificadorSilencioso;
+import pedidos.SolicitudDePedido;
+import pedidos.TipoEnvio;
 import pedidos.Pedido;
 import pedidos.PedidoManager;
 
@@ -73,54 +80,48 @@ public class ComportamientoCorrecto {
     }
 
     static PedidoManager conStock() {
-        PedidoManager m = new PedidoManager();
-        m.cargarStock("VIN-MALBEC-750", 500);
-        m.cargarStock("ACE-OLIVA-500", 500);
-        m.cargarStock("DUL-MEMBRILLO-400", 500);
-        m.cargarStock("OTR-GENERICO-1", 500);
+        PedidoManager m = new PedidoManager(new NotificadorSilencioso());
+        m.ingresarStock("VIN-MALBEC-750", 500);
+        m.ingresarStock("ACE-OLIVA-500", 500);
+        m.ingresarStock("DUL-MEMBRILLO-400", 500);
+        m.ingresarStock("FRU-NUEZ-250", 500);
+        m.ingresarStock("OTR-GENERICO-1", 500);
         return m;
     }
 
     static String pedir(PedidoManager m, String doc, String provincia, String codigo,
                         int cantidad, String tipoEnvio, boolean urgente) {
-        return m.registrarPedido(doc, "Cliente " + doc, doc + "@ejemplo.com", "261000",
-                "Calle 1", "Ciudad", provincia, "5500", codigo, cantidad,
-                tipoEnvio, "", urgente);
+        return m.registrar(new SolicitudDePedido(doc, "Cliente " + doc, doc + "@ejemplo.com",
+                "261000", new Direccion("Calle 1", "Ciudad", provincia, "5500"),
+                codigo, cantidad, TipoEnvio.desdeTexto(tipoEnvio), "", urgente));
     }
 
-    // ------------------------------------------------------------------
-    /** R1. Defecto principal: el recargo por urgencia desaparece sobre el umbral. */
     static void recargoUrgenteSiempreSeCobra(Verificador v) {
         PedidoManager m = conStock();
 
         // Bajo el umbral: 2 vinos = 17000. Tarifa Cordoba 4500.
         String chicoNormal = pedir(m, "1", "Cordoba", "VIN-MALBEC-750", 2, "ENVIO", false);
         String chicoUrgente = pedir(m, "2", "Cordoba", "VIN-MALBEC-750", 2, "ENVIO", true);
-        v.igual("bajo el umbral el flete normal es la tarifa de zona",
-                4500.0, m.getPedido(chicoNormal).envio);
-        v.igual("bajo el umbral el urgente paga tarifa mas 50%",
-                6750.0, m.getPedido(chicoUrgente).envio);
+        v.igual("bajo el umbral el flete normal es la tarifa de zona", Dinero.de(4500), m.getPedido(chicoNormal).envio());
+        v.igual("bajo el umbral el urgente paga tarifa mas 50%", Dinero.de(6750), m.getPedido(chicoUrgente).envio());
 
         // Sobre el umbral: 4 vinos = 34000. El flete estandar se bonifica.
         String grandeNormal = pedir(m, "3", "Cordoba", "VIN-MALBEC-750", 4, "ENVIO", false);
         String grandeUrgente = pedir(m, "4", "Cordoba", "VIN-MALBEC-750", 4, "ENVIO", true);
-        v.igual("sobre el umbral el flete estandar se bonifica",
-                0.0, m.getPedido(grandeNormal).envio);
-        v.igual("sobre el umbral el urgente igual paga el adicional de urgencia",
-                2250.0, m.getPedido(grandeUrgente).envio);
+        v.igual("sobre el umbral el flete estandar se bonifica", Dinero.de(0), m.getPedido(grandeNormal).envio());
+        v.igual("sobre el umbral el urgente igual paga el adicional de urgencia", Dinero.de(2250), m.getPedido(grandeUrgente).envio());
 
         v.cierto("un pedido urgente nunca cuesta lo mismo que uno normal",
-                m.getPedido(grandeUrgente).total > m.getPedido(grandeNormal).total);
+                m.getPedido(grandeUrgente).total()
+                        .compareTo(m.getPedido(grandeNormal).total()) > 0);
     }
 
     /** R2. El umbral debe ser inclusivo: "desde $25.000". */
     static void umbralInclusivo(Verificador v) {
         PedidoManager m = conStock();
         String justo = pedir(m, "1", "Mendoza", "OTR-GENERICO-1", 5, "ENVIO", false);
-        v.igual("el subtotal de prueba es exactamente el umbral",
-                25000.0, m.getPedido(justo).subtotal);
-        v.igual("un subtotal de exactamente 25000 ya tiene envio bonificado",
-                0.0, m.getPedido(justo).envio);
+        v.igual("el subtotal de prueba es exactamente el umbral", Dinero.de(25000), m.getPedido(justo).subtotal());
+        v.igual("un subtotal de exactamente 25000 ya tiene envio bonificado", Dinero.de(0), m.getPedido(justo).envio());
     }
 
     /** R4. Cantidad cero o negativa debe rechazarse. */
@@ -136,27 +137,27 @@ public class ComportamientoCorrecto {
         v.igual("una cantidad negativa no altera el stock", antes, m.stockDe("VIN-MALBEC-750"));
 
         v.cierto("ningun pedido registrado tiene importe negativo",
-                m.buscar(null, null, null, null, null).stream().noneMatch(p -> p.total < 0));
+                m.buscar(new FiltroDePedidos()).stream().noneMatch(p -> p.total().esNegativo()));
     }
 
     /** R5. Un pedido rechazado no debe dejar residuo. */
     static void registroAtomico(Verificador v) {
-        PedidoManager m = new PedidoManager();
-        m.cargarStock("VIN-MALBEC-750", 2);
+        PedidoManager m = new PedidoManager(new NotificadorSilencioso());
+        m.ingresarStock("VIN-MALBEC-750", 2);
 
         String r = pedir(m, "99999", "Mendoza", "VIN-MALBEC-750", 999, "ENVIO", false);
         v.igual("el pedido sin stock se rechaza", null, r);
         v.falso("un pedido rechazado no da de alta al cliente",
-                m.clientes.containsKey("99999"));
+                m.getCliente("99999") != null);
         v.igual("un pedido rechazado no deja pedidos registrados",
-                0, m.buscar(null, null, null, null, null).size());
+                0, m.buscar(new FiltroDePedidos()).size());
     }
 
     /** cargarStock debe sumar el ingreso, no reemplazar el inventario. */
     static void cargarStockAcumula(Verificador v) {
-        PedidoManager m = new PedidoManager();
-        m.cargarStock("DUL-MEMBRILLO-400", 50);
-        m.cargarStock("DUL-MEMBRILLO-400", 20);
+        PedidoManager m = new PedidoManager(new NotificadorSilencioso());
+        m.ingresarStock("DUL-MEMBRILLO-400", 50);
+        m.ingresarStock("DUL-MEMBRILLO-400", 20);
         v.igual("dos ingresos de mercaderia se acumulan",
                 70, m.stockDe("DUL-MEMBRILLO-400"));
     }
@@ -168,15 +169,13 @@ public class ComportamientoCorrecto {
         String minuscula = pedir(m, "1", "Mendoza", "VIN-MALBEC-750", 1, "retiro", false);
         v.cierto("'retiro' en minuscula se acepta", minuscula != null);
         if (minuscula != null) {
-            v.igual("'retiro' en minuscula no paga flete",
-                    0.0, m.getPedido(minuscula).envio);
+            v.igual("'retiro' en minuscula no paga flete", Dinero.de(0), m.getPedido(minuscula).envio());
         }
 
         String conEspacios = pedir(m, "2", "Mendoza", "VIN-MALBEC-750", 1, "  RETIRO ", false);
         v.cierto("el tipo de envio tolera espacios alrededor", conEspacios != null);
         if (conEspacios != null) {
-            v.igual("el tipo con espacios no paga flete",
-                    0.0, m.getPedido(conEspacios).envio);
+            v.igual("el tipo con espacios no paga flete", Dinero.de(0), m.getPedido(conEspacios).envio());
         }
 
         v.igual("un tipo de envio inexistente se rechaza", null,
@@ -187,19 +186,19 @@ public class ComportamientoCorrecto {
     static void datosDelClienteSeActualizan(Verificador v) {
         PedidoManager m = conStock();
 
-        m.registrarPedido("30111222", "Maria Fernandez", "maria@viejo.com", "2615550001",
-                "San Martin 100", "Mendoza", "Mendoza", "5500",
-                "DUL-MEMBRILLO-400", 1, "ENVIO", "", false);
-        m.registrarPedido("30111222", "Maria Fernandez", "maria@nuevo.com", "3515559999",
-                "Colon 2000", "Cordoba", "Cordoba", "5000",
-                "DUL-MEMBRILLO-400", 1, "ENVIO", "", false);
+        m.registrar(new SolicitudDePedido("30111222", "Maria Fernandez", "maria@viejo.com",
+                "2615550001", new Direccion("San Martin 100", "Mendoza", "Mendoza", "5500"),
+                "DUL-MEMBRILLO-400", 1, TipoEnvio.ENVIO, "", false));
+        m.registrar(new SolicitudDePedido("30111222", "Maria Fernandez", "maria@nuevo.com",
+                "3515559999", new Direccion("Colon 2000", "Cordoba", "Cordoba", "5000"),
+                "DUL-MEMBRILLO-400", 1, TipoEnvio.ENVIO, "", false));
 
         v.igual("el mail del cliente se actualiza",
-                "maria@nuevo.com", m.clientes.get("30111222").email);
+                "maria@nuevo.com", m.getCliente("30111222").email());
         v.igual("la provincia del cliente se actualiza",
-                "Cordoba", m.clientes.get("30111222").provincia);
+                "Cordoba", m.getCliente("30111222").provincia());
         v.igual("la calle del cliente se actualiza",
-                "Colon 2000", m.clientes.get("30111222").calle);
+                "Colon 2000", m.getCliente("30111222").direccion().calle());
     }
 
     /** R3. "Facturado" no debe incluir pedidos que nadie pago. */
@@ -207,21 +206,21 @@ public class ComportamientoCorrecto {
         PedidoManager m = conStock();
 
         pedir(m, "1", "Mendoza", "VIN-MALBEC-750", 1, "RETIRO", false);
-        v.igual("un pedido pendiente no cuenta como facturado", 0.0, m.totalFacturado());
+        v.igual("un pedido pendiente no cuenta como facturado", Dinero.de(0), m.totalFacturado());
 
         String pagado = pedir(m, "2", "Mendoza", "VIN-MALBEC-750", 1, "RETIRO", false);
         m.cambiarEstado(pagado, "PAGADO");
-        v.igual("un pedido pagado cuenta como facturado", 8500.0, m.totalFacturado());
+        v.igual("un pedido pagado cuenta como facturado", Dinero.de(8500), m.totalFacturado());
 
         String cancelado = pedir(m, "3", "Mendoza", "VIN-MALBEC-750", 1, "RETIRO", false);
         m.cambiarEstado(cancelado, "CANCELADO");
-        v.igual("un pedido cancelado no cuenta como facturado", 8500.0, m.totalFacturado());
+        v.igual("un pedido cancelado no cuenta como facturado", Dinero.de(8500), m.totalFacturado());
     }
 
     /** Un reporte contable no puede salir en notacion cientifica. */
     static void importesConFormatoDeMoneda(Verificador v) {
-        PedidoManager m = new PedidoManager();
-        m.cargarStock("VIN-MALBEC-750", 5000);
+        PedidoManager m = new PedidoManager(new NotificadorSilencioso());
+        m.ingresarStock("VIN-MALBEC-750", 5000);
         String p = pedir(m, "1", "Mendoza", "VIN-MALBEC-750", 2000, "RETIRO", false);
         m.cambiarEstado(p, "PAGADO");
 
@@ -234,8 +233,8 @@ public class ComportamientoCorrecto {
 
     /** Un listado administrativo tiene que salir siempre en el mismo orden. */
     static void ordenDeterminista(Verificador v) {
-        PedidoManager m = new PedidoManager();
-        m.cargarStock("VIN-MALBEC-750", 500);
+        PedidoManager m = new PedidoManager(new NotificadorSilencioso());
+        m.ingresarStock("VIN-MALBEC-750", 500);
         for (int i = 1; i <= 6; i++) {
             pedir(m, "doc" + i, "Mendoza", "VIN-MALBEC-750", 1, "RETIRO", false);
         }
@@ -249,12 +248,12 @@ public class ComportamientoCorrecto {
         v.igual("el reporte sale en orden de creacion",
                 "PED-1 PED-2 PED-3 PED-4 PED-5 PED-6", orden.toString().trim());
 
-        List<Pedido> r1 = m.buscar(null, null, null, null, null);
-        List<Pedido> r2 = m.buscar(null, null, null, null, null);
+        List<Pedido> r1 = m.buscar(new FiltroDePedidos());
+        List<Pedido> r2 = m.buscar(new FiltroDePedidos());
         StringBuilder o1 = new StringBuilder();
         StringBuilder o2 = new StringBuilder();
-        for (Pedido p : r1) o1.append(p.numero).append(" ");
-        for (Pedido p : r2) o2.append(p.numero).append(" ");
+        for (Pedido p : r1) o1.append(p.numero()).append(" ");
+        for (Pedido p : r2) o2.append(p.numero()).append(" ");
         v.igual("dos busquedas identicas devuelven el mismo orden",
                 o1.toString(), o2.toString());
     }

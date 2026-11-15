@@ -32,6 +32,33 @@ public class Verificador {
         registrar(ok, caso, String.valueOf(esperado), String.valueOf(obtenido));
     }
 
+    /**
+     * Registra un comportamiento defectuoso que el sistema ya NO tiene.
+     *
+     * Se usa para los defectos corregidos a proposito. Pasa cuando el valor
+     * actual es DISTINTO del que producia el sistema base: si volviera a
+     * coincidir, el defecto reapareció.
+     *
+     * Michael Feathers: una prueba de caracterizacion documenta la verdad. Si
+     * la verdad cambia a proposito, la prueba se actualiza para registrar el
+     * cambio, no para ocultarlo.
+     */
+    public void yaNoOcurre(String caso, Object valorDefectuoso, Object valorActual) {
+        boolean corregido = valorDefectuoso == null
+                ? valorActual != null
+                : !valorDefectuoso.equals(valorActual);
+        if (corregido) {
+            pasadas++;
+            System.out.println("  [CORREGIDO] " + caso);
+            System.out.println("              antes: " + valorDefectuoso
+                    + "   ahora: " + valorActual);
+        } else {
+            fallidas++;
+            System.out.println("  [REAPARECIO] " + caso);
+            System.out.println("              el defecto volvio: " + valorActual);
+        }
+    }
+
     public void cierto(String caso, boolean condicion) {
         registrar(condicion, caso, "true", String.valueOf(condicion));
     }

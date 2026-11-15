@@ -1,0 +1,59 @@
+=== REGISTRO DE PEDIDOS ===
+[MAIL -> maria@ejemplo.com] Pedido PED-1 registrado
+[ANALYTICS] PEDIDO_NUEVO :: PED-1
+-> PED-1 total $18.200,00
+[MAIL -> roberto@ejemplo.com] Pedido PED-2 registrado
+[ANALYTICS] PEDIDO_NUEVO :: PED-2
+-> PED-2 total $33.250,00
+[MAIL -> ana@ejemplo.com] Pedido PED-3 registrado
+[ANALYTICS] PEDIDO_NUEVO :: PED-3
+[MAIL -> deposito@distribuidoracuyo.com] Stock bajo de DUL-MEMBRILLO-400: quedan 8
+[ANALYTICS] STOCK_BAJO :: DUL-MEMBRILLO-400
+-> PED-3 total $16.400,00
+[MAIL -> maria@ejemplo.com] Pedido PED-4 registrado
+[ANALYTICS] PEDIDO_NUEVO :: PED-4
+-> PED-4 total $34.000,00
+-> pedido sin stock devuelve: null
+   y NO deja el cliente registrado: true
+
+=== DEFECTO CORREGIDO: recargo por urgencia ===
+  Pedido de $34.000 a Cordoba (supera el umbral de envio gratis)
+    normal  -> envio $0,00, total $34.000,00
+    urgente -> envio $2.250,00, total $36.250,00
+  Antes del refactoring ambos costaban lo mismo: el recargo por
+  urgencia se perdia justo en los pedidos mas grandes.
+
+=== CAMBIOS DE ESTADO ===
+[MAIL -> maria@ejemplo.com] Pedido PED-1 ahora esta PAGADO
+[ANALYTICS] CAMBIO_ESTADO :: PED-1
+p1 a PAGADO: true
+[MAIL -> maria@ejemplo.com] Pedido PED-1 ahora esta PREPARACION
+[ANALYTICS] CAMBIO_ESTADO :: PED-1
+p1 a PREPARACION: true
+p1 a ENTREGADO (salteado): false
+[MAIL -> roberto@ejemplo.com] Pedido PED-2 ahora esta CANCELADO
+[ANALYTICS] CAMBIO_ESTADO :: PED-2
+p2 a CANCELADO: true
+stock aceite tras cancelar: 30
+
+=== ASIGNACION ===
+[ANALYTICS] ASIGNACION :: PED-1
+p1: true
+
+=== BUSQUEDA ===
+urgentes: 1
+de Mendoza: 2
+
+=== REPORTE DE PEDIDOS ===
+PED-1 | Maria Fernandez | VIN-MALBEC-750 x2 | PREPARACION | $18.200,00
+PED-2 | Roberto Sanchez | ACE-OLIVA-500 x5 | CANCELADO | $33.250,00 | URGENTE
+PED-3 | Ana Gomez | DUL-MEMBRILLO-400 x4 | PENDIENTE | $16.400,00
+PED-4 | Maria Fernandez | VIN-MALBEC-750 x4 | PENDIENTE | $34.000,00
+--- Pendientes: 2
+--- Pagados: 0
+--- En preparacion: 1
+--- Despachados: 0
+--- Entregados: 0
+--- Cancelados: 1
+--- Facturado: $18.200,00
+

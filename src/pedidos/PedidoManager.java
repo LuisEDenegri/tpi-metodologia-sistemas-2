@@ -1,305 +1,262 @@
 package pedidos;
 
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
 /**
  * Gestor de pedidos de Distribuidora Cuyo.
  *
- * Esta clase nacio como el modulo de inventario del sistema. Despues se le fue
- * agregando lo de pedidos, despues los clientes, despues el reporte para
- * administracion y las notificaciones. Funciona.
+ * ANTES: 305 lineas, una God Class que hacia todo. El comentario original lo
+ * confesaba: nacio como el modulo de inventario, despues se le fue agregando
+ * lo de pedidos, despues los clientes, despues el reporte y las
+ * notificaciones, y cerraba con una nota pendiente de partirla en algun
+ * momento. Este trabajo es ese momento.
  *
- * TODO: habria que partirla en algun momento. Hablarlo con el equipo.
- * TODO: lo del calculo de envio esta duplicado abajo, unificar cuando haya tiempo.
+ * DESPUES: un coordinador. Recibe la solicitud, valida, le pide a cada
+ * colaborador lo suyo y devuelve el resultado. Las reglas de negocio no viven
+ * aca: viven en el objeto que las conoce.
+ *
+ *   Inventario ............ stock
+ *   PoliticaDeCostos ...... precios y envio
+ *   Pedido ................ su propio ciclo de vida
+ *   GeneradorDeReporte .... presentacion
+ *   FiltroDePedidos ....... criterios de busqueda
+ *   Notificador ........... avisos (abstraccion, no implementacion)
+ *
+ * SRP: la unica razon para cambiar esta clase es que cambie el flujo de
+ * coordinacion. Si cambia una tarifa, se toca PoliticaDeCostos; si cambia el
+ * formato del reporte, GeneradorDeReporte. Antes todo eso la tocaba a ella
+ * (Divergent Change).
+ *
+ * DIP: depende de la interfaz Notificador, no de EmailService. Por eso ahora se
+ * la puede ejercitar en silencio desde las pruebas.
  */
 public class PedidoManager {
 
-    // los pedidos, por numero
-    public Map<String, Pedido> pedidos = new HashMap<>();
+    private final Map<String, Pedido> pedidos = new LinkedHashMap<>();
+    private final Map<String, Cliente> clientes = new LinkedHashMap<>();
+    private final Inventario inventario;
+    private final PoliticaDeCostos politica;
+    private final Notificador notificador;
+    private final GeneradorDeReporte generadorDeReporte = new GeneradorDeReporte();
 
-    // stock por codigo de producto - viene del modulo viejo de inventario
-    public Map<String, Integer> stock = new HashMap<>();
+    private int proximoNumero = 1;
 
-    // clientes por documento
-    public Map<String, Cliente> clientes = new HashMap<>();
+    /** Configuracion de produccion: notifica por mail. */
+    public PedidoManager() {
+        this(new NotificadorPorEmail());
+    }
 
-    private int contador = 1;
+    /** Permite inyectar el notificador. Lo usan las pruebas. */
+    public PedidoManager(Notificador notificador) {
+        this(new Inventario(), new PoliticaDeCostos(), notificador);
+    }
 
-    private EmailService emailService = new EmailService();
-    private AnalyticsService analytics = new AnalyticsService();
+    public PedidoManager(Inventario inventario, PoliticaDeCostos politica,
+                         Notificador notificador) {
+        this.inventario = inventario;
+        this.politica = politica;
+        this.notificador = notificador;
+    }
 
-    public String registrarPedido(String doc, String nombre, String email, String telefono,
-                                  String calle, String ciudad, String provincia, String cp,
-                                  String codigoProducto, int cantidad, String tipoEnvio,
-                                  String observaciones, boolean urgente) {
-
-        Cliente c = clientes.get(doc);
-        if (c == null) {
-            c = new Cliente();
-            c.doc = doc;
-            c.nombre = nombre;
-            c.email = email;
-            c.telefono = telefono;
-            c.calle = calle;
-            c.ciudad = ciudad;
-            c.provincia = provincia;
-            c.cp = cp;
-            clientes.put(doc, c);
+    /**
+     * Registra un pedido.
+     *
+     * ANTES: 87 lineas y 13 parametros. Hacia ocho cosas distintas: daba de
+     * alta el cliente, validaba stock, creaba el pedido, buscaba el precio,
+     * calculaba el envio, descontaba stock, guardaba y notificaba.
+     *
+     * DESPUES: el flujo completo se lee en una pantalla y cada paso delega.
+     *
+     * CORRECCION - ATOMICIDAD: el codigo original daba de alta al cliente ANTES
+     * de validar el stock, asi que un pedido rechazado dejaba un cliente
+     * persistido que nunca compro nada. Ahora se valida todo primero y recien
+     * despues se escribe: o pasan las dos cosas, o no pasa ninguna.
+     *
+     * @return el numero de pedido, o null si fue rechazado.
+     */
+    public String registrar(SolicitudDePedido solicitud) {
+        if (solicitud == null || !solicitud.esValida()) {
+            return null;
         }
-
-        Integer disponible = stock.get(codigoProducto);
-        if (disponible == null) {
-            disponible = 0;
-        }
-        if (disponible < cantidad) {
+        if (!inventario.haySuficiente(solicitud.codigoProducto(), solicitud.cantidad())) {
             return null;
         }
 
-        Pedido p = new Pedido();
-        p.numero = "PED-" + contador;
-        contador = contador + 1;
-        p.doc = doc;
-        p.codigoProducto = codigoProducto;
-        p.cantidad = cantidad;
-        p.tipoEnvio = tipoEnvio;
-        p.observaciones = observaciones;
-        p.urgente = urgente;
-        p.estado = "PENDIENTE";
+        // A partir de aca no hay vuelta atras: todo lo que sigue debe completarse.
+        Cliente cliente = registrarOActualizarCliente(solicitud);
+        Pedido pedido = crearPedido(solicitud);
 
-        double precio = 0;
-        if (codigoProducto.startsWith("VIN")) {
-            precio = 8500;
-        } else if (codigoProducto.startsWith("ACE")) {
-            precio = 6200;
-        } else if (codigoProducto.startsWith("DUL")) {
-            precio = 3400;
-        } else if (codigoProducto.startsWith("FRU")) {
-            precio = 4800;
-        } else {
-            precio = 5000;
-        }
-        p.subtotal = precio * cantidad;
+        inventario.descontar(solicitud.codigoProducto(), solicitud.cantidad());
+        pedidos.put(pedido.numero(), pedido);
 
-        // calculo del envio
-        double envio = 0;
-        if (tipoEnvio.equals("RETIRO")) {
-            envio = 0;
-        } else if (provincia.equals("Mendoza")) {
-            envio = 1200;
-        } else if (provincia.equals("CABA") || provincia.equals("Buenos Aires")) {
-            envio = 2800;
-        } else {
-            envio = 4500;
-        }
-        if (urgente) {
-            envio = envio * 1.5;
-        }
-        if (p.subtotal > 25000) {
-            envio = 0;
-        }
-        p.envio = envio;
-        p.total = p.subtotal + envio;
-
-        stock.put(codigoProducto, disponible - cantidad);
-
-        pedidos.put(p.numero, p);
-
-        // avisar
-        emailService.enviar(c.email, "Pedido " + p.numero + " registrado");
-        analytics.registrar("PEDIDO_NUEVO", p.numero);
-        if (stock.get(codigoProducto) < 10) {
-            emailService.enviar("deposito@distribuidoracuyo.com",
-                    "Stock bajo de " + codigoProducto);
-            analytics.registrar("STOCK_BAJO", codigoProducto);
-        }
-
-        return p.numero;
+        notificarAltaDePedido(cliente, pedido);
+        return pedido.numero();
     }
 
-    public boolean cambiarEstado(String numero, String nuevoEstado) {
-        Pedido p = pedidos.get(numero);
-        if (p == null) {
+    /**
+     * REFACTORING: Extract Method.
+     *
+     * CORRECCION: antes, si el cliente ya existia, el bloque entero se saltaba
+     * y sus datos quedaban congelados en el primer pedido. Ahora se actualizan
+     * con los del pedido mas reciente.
+     */
+    private Cliente registrarOActualizarCliente(SolicitudDePedido solicitud) {
+        Cliente existente = clientes.get(solicitud.documentoCliente());
+        if (existente == null) {
+            Cliente nuevo = solicitud.comoCliente();
+            clientes.put(nuevo.documento(), nuevo);
+            return nuevo;
+        }
+        existente.actualizarDatosDeContacto(solicitud.nombreCliente(), solicitud.email(),
+                solicitud.telefono(), solicitud.direccion());
+        return existente;
+    }
+
+    /** REFACTORING: Extract Method. El calculo de importes delega en la politica. */
+    private Pedido crearPedido(SolicitudDePedido solicitud) {
+        Dinero subtotal = politica.subtotal(solicitud.codigoProducto(), solicitud.cantidad());
+        Dinero envio = politica.costoDeEnvio(solicitud.tipoEnvio(),
+                solicitud.direccion().zona(), subtotal, solicitud.esUrgente());
+        String numero = "PED-" + proximoNumero;
+        proximoNumero++;
+        return new Pedido(numero, solicitud, subtotal, envio);
+    }
+
+    /** REFACTORING: Extract Method. Notificar no es registrar. */
+    private void notificarAltaDePedido(Cliente cliente, Pedido pedido) {
+        notificador.notificarAlCliente(cliente, "Pedido " + pedido.numero() + " registrado");
+        notificador.registrarEvento("PEDIDO_NUEVO", pedido.numero());
+
+        String codigo = pedido.codigoProducto();
+        if (inventario.tieneStockBajo(codigo)) {
+            notificador.notificarStockBajo(codigo, inventario.disponible(codigo));
+        }
+    }
+
+    /**
+     * Hace avanzar un pedido a otro estado.
+     *
+     * ANTES: 45 lineas de if/else anidados que mezclaban tres cosas: validar la
+     * transicion, reponer stock y notificar. La reposicion de stock estaba
+     * duplicada en dos ramas distintas (Duplicated Code).
+     *
+     * DESPUES: el pedido valida su propia transicion, el inventario repone y el
+     * notificador avisa. Cada uno lo suyo.
+     *
+     * @return true si la transicion se aplico.
+     */
+    public boolean cambiarEstado(String numero, EstadoPedido nuevoEstado) {
+        Pedido pedido = pedidos.get(numero);
+        if (pedido == null) {
             return false;
         }
-
-        if (p.estado.equals("PENDIENTE")) {
-            if (nuevoEstado.equals("PAGADO")) {
-                p.estado = nuevoEstado;
-            } else if (nuevoEstado.equals("CANCELADO")) {
-                p.estado = nuevoEstado;
-                Integer d = stock.get(p.codigoProducto);
-                if (d == null) {
-                    d = 0;
-                }
-                stock.put(p.codigoProducto, d + p.cantidad);
-            } else {
-                return false;
-            }
-        } else if (p.estado.equals("PAGADO")) {
-            if (nuevoEstado.equals("PREPARACION")) {
-                p.estado = nuevoEstado;
-            } else if (nuevoEstado.equals("CANCELADO")) {
-                p.estado = nuevoEstado;
-                Integer d = stock.get(p.codigoProducto);
-                if (d == null) {
-                    d = 0;
-                }
-                stock.put(p.codigoProducto, d + p.cantidad);
-            } else {
-                return false;
-            }
-        } else if (p.estado.equals("PREPARACION")) {
-            if (nuevoEstado.equals("DESPACHADO")) {
-                p.estado = nuevoEstado;
-            } else {
-                return false;
-            }
-        } else if (p.estado.equals("DESPACHADO")) {
-            if (nuevoEstado.equals("ENTREGADO")) {
-                p.estado = nuevoEstado;
-            } else {
-                return false;
-            }
-        } else {
+        if (!pedido.cambiarEstadoA(nuevoEstado)) {
             return false;
         }
-
-        try {
-            Cliente c = clientes.get(p.doc);
-            emailService.enviar(c.email, "Pedido " + numero + " ahora esta " + nuevoEstado);
-            analytics.registrar("CAMBIO_ESTADO", numero);
-        } catch (Exception e) {
+        if (nuevoEstado.reponeStock()) {
+            inventario.reponer(pedido.codigoProducto(), pedido.cantidad());
         }
-
+        notificador.notificarAlCliente(clientes.get(pedido.documentoCliente()),
+                "Pedido " + numero + " ahora esta " + nuevoEstado);
+        notificador.registrarEvento("CAMBIO_ESTADO", numero);
         return true;
+    }
+
+    /** Acepta el estado como texto. Devuelve false si no corresponde a ninguno. */
+    public boolean cambiarEstado(String numero, String nuevoEstado) {
+        return cambiarEstado(numero, EstadoPedido.desdeTexto(nuevoEstado));
     }
 
     public boolean asignarResponsable(String numero, String responsable, String area) {
-        Pedido p = pedidos.get(numero);
-        if (p == null) {
+        Pedido pedido = pedidos.get(numero);
+        if (pedido == null) {
             return false;
         }
-        p.responsable = responsable;
-        p.area = area;
-        analytics.registrar("ASIGNACION", numero);
+        pedido.asignarResponsable(responsable, area);
+        notificador.registrarEvento("ASIGNACION", numero);
         return true;
     }
 
-    public List<Pedido> buscar(String estado, String provincia, Double montoMinimo,
-                               Boolean soloUrgentes, String codigoProducto) {
+    public List<Pedido> buscar(FiltroDePedidos filtro) {
+        FiltroDePedidos efectivo = filtro == null ? new FiltroDePedidos() : filtro;
         List<Pedido> resultado = new ArrayList<>();
-        for (String k : pedidos.keySet()) {
-            Pedido p = pedidos.get(k);
-            boolean pasa = true;
-            if (estado != null && !p.estado.equals(estado)) {
-                pasa = false;
-            }
-            if (provincia != null) {
-                Cliente c = clientes.get(p.doc);
-                if (c == null || !c.provincia.equals(provincia)) {
-                    pasa = false;
-                }
-            }
-            if (montoMinimo != null && p.total < montoMinimo) {
-                pasa = false;
-            }
-            if (soloUrgentes != null && soloUrgentes && !p.urgente) {
-                pasa = false;
-            }
-            if (codigoProducto != null && !p.codigoProducto.equals(codigoProducto)) {
-                pasa = false;
-            }
-            if (pasa) {
+        for (Pedido p : pedidos.values()) {
+            if (efectivo.aceptaA(p, clientes)) {
                 resultado.add(p);
             }
         }
         return resultado;
     }
 
+    public List<Pedido> todos() {
+        return new ArrayList<>(pedidos.values());
+    }
+
     public String reporte() {
-        StringBuilder sb = new StringBuilder();
-        sb.append("=== REPORTE DE PEDIDOS ===\n");
-
-        double totalGeneral = 0;
-        int cantPendientes = 0;
-        int cantPagados = 0;
-        int cantPreparacion = 0;
-        int cantDespachados = 0;
-        int cantEntregados = 0;
-        int cantCancelados = 0;
-
-        for (String k : pedidos.keySet()) {
-            Pedido p = pedidos.get(k);
-
-            if (!p.estado.equals("CANCELADO")) {
-                totalGeneral = totalGeneral + p.total;
-            }
-
-            if (p.estado.equals("PENDIENTE")) {
-                cantPendientes++;
-            } else if (p.estado.equals("PAGADO")) {
-                cantPagados++;
-            } else if (p.estado.equals("PREPARACION")) {
-                cantPreparacion++;
-            } else if (p.estado.equals("DESPACHADO")) {
-                cantDespachados++;
-            } else if (p.estado.equals("ENTREGADO")) {
-                cantEntregados++;
-            } else if (p.estado.equals("CANCELADO")) {
-                cantCancelados++;
-            }
-
-            Cliente c = clientes.get(p.doc);
-            String nom = "";
-            if (c != null) {
-                nom = c.nombre;
-            }
-            sb.append(p.numero + " | " + nom + " | " + p.codigoProducto
-                    + " x" + p.cantidad + " | " + p.estado + " | $" + p.total);
-            if (p.urgente) {
-                sb.append(" | URGENTE");
-            }
-            sb.append("\n");
-        }
-
-        sb.append("--- Pendientes: " + cantPendientes + "\n");
-        sb.append("--- Pagados: " + cantPagados + "\n");
-        sb.append("--- En preparacion: " + cantPreparacion + "\n");
-        sb.append("--- Despachados: " + cantDespachados + "\n");
-        sb.append("--- Entregados: " + cantEntregados + "\n");
-        sb.append("--- Cancelados: " + cantCancelados + "\n");
-        sb.append("--- Facturado: $" + totalGeneral + "\n");
-
-        return sb.toString();
+        return generadorDeReporte.generar(pedidos.values(), clientes);
     }
 
-    public double totalFacturado() {
-        double t = 0;
-        for (String k : pedidos.keySet()) {
-            Pedido p = pedidos.get(k);
-            if (!p.estado.equals("CANCELADO")) {
-                t = t + p.total;
+    /**
+     * Total efectivamente facturado.
+     *
+     * CORRECCION: antes el criterio era "todo lo que no esta CANCELADO", asi
+     * que un pedido recien ingresado que nadie pago ya figuraba como
+     * facturacion. Ahora cuenta desde PAGADO en adelante.
+     */
+    public Dinero totalFacturado() {
+        Dinero total = Dinero.CERO;
+        for (Pedido p : pedidos.values()) {
+            if (p.cuentaComoFacturado()) {
+                total = total.mas(p.total());
             }
         }
-        return t;
+        return total;
     }
 
-    public void cargarStock(String codigoProducto, int cantidad) {
-        stock.put(codigoProducto, cantidad);
+    /** Suma un ingreso de mercaderia al stock. */
+    public void ingresarStock(String codigoProducto, int cantidad) {
+        inventario.ingresar(codigoProducto, cantidad);
+    }
+
+    /** Fija el stock tras un recuento fisico, descartando el valor anterior. */
+    public void fijarStock(String codigoProducto, int cantidad) {
+        inventario.fijar(codigoProducto, cantidad);
     }
 
     public int stockDe(String codigoProducto) {
-        Integer d = stock.get(codigoProducto);
-        if (d == null) {
-            return 0;
-        }
-        return d;
+        return inventario.disponible(codigoProducto);
     }
 
     public Pedido getPedido(String numero) {
         return pedidos.get(numero);
+    }
+
+    public Cliente getCliente(String documento) {
+        return clientes.get(documento);
+    }
+
+    /**
+     * Vistas de solo lectura.
+     *
+     * CORRECCION: antes los tres mapas eran campos publicos. La sonda de
+     * diagnostico demostro que desde afuera se podia poner el stock en -999 y
+     * el estado de un pedido en "INVENTADO", sin que nada lo impidiera. Las
+     * invariantes del dominio no pueden depender de la buena voluntad del
+     * llamador.
+     */
+    public Map<String, Pedido> pedidos() {
+        return Collections.unmodifiableMap(pedidos);
+    }
+
+    public Map<String, Cliente> clientes() {
+        return Collections.unmodifiableMap(clientes);
+    }
+
+    public Map<String, Integer> stock() {
+        return inventario.comoMapa();
     }
 }
