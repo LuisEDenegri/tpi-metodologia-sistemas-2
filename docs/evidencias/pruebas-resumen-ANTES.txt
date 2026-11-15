@@ -1,0 +1,47 @@
+
+#########################################################
+#  CORRIDA DE PRUEBAS - Sistema de Gestion de Pedidos   #
+#########################################################
+  [FALLA] sobre el umbral el urgente igual paga el adicional de urgencia
+  [FALLA] un pedido urgente nunca cuesta lo mismo que uno normal
+  [FALLA] un subtotal de exactamente 25000 ya tiene envio bonificado
+  [FALLA] un pedido de cantidad cero se rechaza
+  [FALLA] un pedido de cantidad negativa se rechaza
+  [FALLA] una cantidad negativa no altera el stock
+  [FALLA] ningun pedido registrado tiene importe negativo
+  [FALLA] un pedido rechazado no da de alta al cliente
+  [FALLA] dos ingresos de mercaderia se acumulan
+  [FALLA] 'retiro' en minuscula no paga flete
+  [FALLA] el tipo con espacios no paga flete
+  [FALLA] un tipo de envio inexistente se rechaza
+  [FALLA] el mail del cliente se actualiza
+  [FALLA] la provincia del cliente se actualiza
+  [FALLA] la calle del cliente se actualiza
+  [FALLA] un pedido pendiente no cuenta como facturado
+  [FALLA] un pedido pagado cuenta como facturado
+  [FALLA] un pedido cancelado no cuenta como facturado
+  [FALLA] el reporte no usa notacion cientifica
+  [FALLA] el reporte formatea el importe con separador de miles
+  [FALLA] el reporte sale en orden de creacion
+  [FALLA] PedidoManager no expone campos publicos mutables
+  [FALLA] Pedido no expone campos publicos mutables
+  [FALLA] Cliente no expone campos publicos mutables
+
+#########################################################
+#  RESUMEN                                              #
+#########################################################
+
+  CARACTERIZACION DEL SISTEMA BASE
+    68 pasadas, 0 fallidas
+    Fija el comportamiento actual. Debe estar siempre en verde:
+    un rojo aca es una regresion introducida por un refactoring.
+
+  COMPORTAMIENTO CORRECTO ESPERADO
+    9 pasadas, 24 fallidas
+    Define el comportamiento deseado. Arranca en rojo:
+    cada caso que pasa a verde es un defecto corregido.
+
+  >> Sin regresiones. Quedan 24 defectos por corregir.
+
+  (para ver caso por caso: --detallado)
+
