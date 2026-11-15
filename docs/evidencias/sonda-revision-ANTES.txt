@@ -1,0 +1,79 @@
+
+=========================================================
+REV-1: cantidad cero o negativa se acepta
+=========================================================
+  cantidad 0  -> pedido PED-1, total 1200.0
+  cantidad -5 -> pedido PED-2, subtotal -42500.0
+  stock antes 10 -> despues 15
+  [CONFIRMADO] cantidad <= 0 se acepta y corrompe stock y contabilidad
+               La guarda 'disponible < cantidad' pasa trivialmente con negativos (10 < -5 es falso). Luego el descuento suma: el stock subio de 10 a 15. El pedido entra con subtotal negativo, que RESTA del facturado.
+
+=========================================================
+REV-2: cancelar despues de un recuento de deposito infla stock
+=========================================================
+  stock 30, pedido de 10 -> 20
+  llega camion, recuento fisico = 100 -> 100
+  se cancela el pedido viejo -> 110
+  [CONFIRMADO] la reposicion suma sobre el recuento nuevo e inventa unidades
+               Quedo en 110 cuando el deposito tiene 100 reales. La mercaderia del pedido cancelado nunca salio, ya estaba contada en el recuento. El sistema no distingue stock reservado de stock disponible.
+
+=========================================================
+REV-3: cargarStock pisa en vez de sumar
+=========================================================
+  cargarStock(50) y despues cargarStock(20) -> 20
+  [CONFIRMADO] el nombre dice cargar pero la implementacion reemplaza
+               Quedo en 20. Quien recibe 20 cajas mas y llama cargarStock(20) acaba de borrar 50 unidades del inventario. O el metodo suma, o se llama fijarStock.
+
+=========================================================
+REV-4: tipoEnvio sin validar, sensible a mayusculas
+=========================================================
+  tipoEnvio 'RETIRO'        -> envio 0.0
+  tipoEnvio 'retiro'        -> envio 1200.0
+  tipoEnvio 'CUALQUIERCOSA' -> envio 1200.0
+  [CONFIRMADO] 'retiro' en minuscula cobra flete y la basura se acepta
+               Al cliente que retira en el local escribiendo 'retiro' se le cobran 1200.0 de flete. Y un tipo de envio inexistente entra al sistema sin resistencia.
+
+=========================================================
+REV-5: borde exacto del umbral de envio gratis
+=========================================================
+  subtotal exacto 25000.0 -> envio 1200.0
+  subtotal 30000.0 -> envio 0.0
+  [CONFIRMADO] un subtotal de exactamente 25000 paga flete completo
+               La condicion es 'subtotal > 25000', estricta. Si la promocion publicada dice 'desde $25.000' esto incumple la oferta y expone a un reclamo de Defensa del Consumidor. Si dice 'mas de', es correcto, pero leyendo el codigo no hay forma de saber cual de las dos es.
+
+=========================================================
+REV-6: catch vacio confirma el cambio de estado sin notificar
+=========================================================
+  se elimina el cliente del mapa y se cambia el estado:
+  cambiarEstado devolvio: true
+  estado del pedido:      PAGADO
+  (no se imprimio ningun MAIL ni ANALYTICS arriba)
+  [CONFIRMADO] devuelve true aunque la notificacion fallo sin dejar rastro
+               clientes.get devuelve null, c.email lanza NPE y el catch vacio se la traga. El llamador cree que todo salio bien. El dia que EmailService hable con un SMTP real, el sistema dejara de notificar a todos los clientes y nadie se entera hasta que llame el primero.
+
+=========================================================
+REV-7: el cliente queda registrado aunque el pedido se rechace
+=========================================================
+  pedido sin stock devolvio: null
+  el cliente quedo en la base: true
+  [CONFIRMADO] registrarPedido no es atomico: falla y deja residuo
+               El cliente se persiste ANTES de validar el stock. Un pedido que nunca existio deja un cliente dado de alta. En el Main real, 'Carlos Ruiz' queda en la base aunque su pedido fue rechazado.
+
+=========================================================
+REV-8: el reporte imprime notacion cientifica
+=========================================================
+  --- Facturado: $1.7E7
+  [CONFIRMADO] el reporte contable sale en notacion cientifica
+               La concatenacion '$' + double delega el formato a Double.toString(), que pasa a notacion cientifica desde 10^7. Un reporte que va a administracion diciendo $1.7E7 es ilegible. Esperado: $17.000.000,00
+
+=========================================================
+REV-9: 'Facturado' incluye pedidos que nadie pago
+=========================================================
+  unico pedido en estado: PENDIENTE
+  total facturado:        8500.0
+  [CONFIRMADO] un pedido recien ingresado ya cuenta como facturado
+               El criterio es 'todo lo que no esta CANCELADO', lo que mete en la misma bolsa un pedido recien ingresado y uno entregado y cobrado. Si el reporte se usa para proyeccion de ingresos, el numero esta inflado. Requiere confirmacion del area contable: puede ser intencional.
+
+=========================================================
+RESUMEN REVISION: 9 confirmados, 0 descartados
+=========================================================
