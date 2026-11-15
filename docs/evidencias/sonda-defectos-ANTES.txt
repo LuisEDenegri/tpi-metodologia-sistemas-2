@@ -1,0 +1,61 @@
+
+=========================================================
+HIPOTESIS 1: el recargo por URGENTE se evapora sobre el umbral
+=========================================================
+  Caso A - 4 vinos a Cordoba, subtotal 34000 (SUPERA el umbral):
+    normal  -> envio 0.0, total 34000.0
+    urgente -> envio 0.0, total 34000.0
+  Caso B - 2 vinos a Cordoba, subtotal 17000 (NO supera):
+    normal  -> envio 4500.0
+    urgente -> envio 6750.0
+  [CONFIRMADO] el urgente no paga recargo cuando supera el umbral
+               Bajo el umbral el recargo se cobra (4500.0 -> 6750.0), sobre el umbral se pierde. El servicio premium se regala justo en los pedidos mas grandes.
+
+=========================================================
+HIPOTESIS 2: cancelar dos veces repone stock dos veces
+=========================================================
+  stock inicial 10 -> tras pedir 5: 5 -> tras cancelar: 10 -> tras recancelar: 10
+  primera cancelacion devolvio true, segunda devolvio false
+  [DESCARTADO] la segunda cancelacion vuelve a reponer stock
+               El estado CANCELADO cae en el else final y devuelve false, asi que la reposicion no se repite. El codigo YA estaba protegido aca. Se deja asentado para no reportar un defecto inexistente.
+
+=========================================================
+HIPOTESIS 3: los datos del cliente nunca se actualizan
+=========================================================
+  Maria se muda a Cordoba y cambia de mail. Pide de nuevo:
+  envio cobrado en el pedido nuevo: 4500.0  (tarifa de Cordoba, interior)
+  provincia guardada del cliente:    Mendoza
+  direccion guardada:                San Martin 100, Mendoza
+  mail al que se notifico:           maria@viejo.com
+  [CONFIRMADO] los datos del cliente quedan congelados en el primer alta
+               Mail y domicilio siguen siendo los del primer pedido. Ademas hay una INCOHERENCIA mas grave: el envio se cobro 4500.0 usando la provincia NUEVA (parametro), pero el paquete se despacha al domicilio VIEJO (Mendoza). Se cobra un destino y se envia a otro. Cobro por provincia nueva: true
+
+=========================================================
+HIPOTESIS 4: dinero representado en double
+=========================================================
+  0.1 + 0.2            = 0.30000000000000004
+  1234.10 x 10 sumado  = 12341.000000000002
+  esperado             = 12341.0
+  [CONFIRMADO] la aritmetica de dinero en double arrastra error
+               Diferencia de 1.8189894035458565E-12. Sobre miles de pedidos la facturacion acumulada no cierra contra contabilidad.
+
+=========================================================
+HIPOTESIS 5: estado interno publico y mutable
+=========================================================
+  stock forzado a negativo:  -999
+  total forzado a cero:      0.0
+  estado fuera del ciclo:    INVENTADO
+  [CONFIRMADO] codigo externo puede violar las invariantes del dominio
+               Ningun metodo valido nada. Un stock negativo y un estado que no existe en el ciclo de vida fueron aceptados sin resistencia.
+
+=========================================================
+HIPOTESIS 6: el orden del reporte no sigue el de creacion
+=========================================================
+  orden de creacion: PED-1 PED-2 PED-3 PED-4 PED-5 PED-6
+  orden del reporte: PED-5 PED-4 PED-3 PED-2 PED-1 PED-6
+  [CONFIRMADO] el reporte no respeta el orden de creacion
+               Se recorre keySet() de un HashMap. El orden depende del hash de la clave, no del alta. Un listado administrativo que cambia de orden sin motivo aparente es imposible de auditar.
+
+=========================================================
+RESUMEN: 5 defectos confirmados, 1 hipotesis descartadas
+=========================================================

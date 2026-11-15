@@ -1,0 +1,51 @@
+=== REGISTRO DE PEDIDOS ===
+[MAIL -> maria@ejemplo.com] Pedido PED-1 registrado
+[ANALYTICS] PEDIDO_NUEVO :: PED-1
+-> PED-1 total $18200.0
+[MAIL -> roberto@ejemplo.com] Pedido PED-2 registrado
+[ANALYTICS] PEDIDO_NUEVO :: PED-2
+-> PED-2 total $31000.0
+[MAIL -> ana@ejemplo.com] Pedido PED-3 registrado
+[ANALYTICS] PEDIDO_NUEVO :: PED-3
+[MAIL -> deposito@distribuidoracuyo.com] Stock bajo de DUL-MEMBRILLO-400
+[ANALYTICS] STOCK_BAJO :: DUL-MEMBRILLO-400
+-> PED-3 total $16400.0
+[MAIL -> maria@ejemplo.com] Pedido PED-4 registrado
+[ANALYTICS] PEDIDO_NUEVO :: PED-4
+-> PED-4 total $34000.0
+-> pedido sin stock devuelve: null
+
+=== CAMBIOS DE ESTADO ===
+[MAIL -> maria@ejemplo.com] Pedido PED-1 ahora esta PAGADO
+[ANALYTICS] CAMBIO_ESTADO :: PED-1
+p1 a PAGADO: true
+[MAIL -> maria@ejemplo.com] Pedido PED-1 ahora esta PREPARACION
+[ANALYTICS] CAMBIO_ESTADO :: PED-1
+p1 a PREPARACION: true
+p1 a ENTREGADO (salteado): false
+[MAIL -> roberto@ejemplo.com] Pedido PED-2 ahora esta CANCELADO
+[ANALYTICS] CAMBIO_ESTADO :: PED-2
+p2 a CANCELADO: true
+stock aceite tras cancelar: 30
+
+=== ASIGNACION ===
+[ANALYTICS] ASIGNACION :: PED-1
+p1: true
+
+=== BUSQUEDA ===
+urgentes: 1
+de Mendoza: 2
+
+=== REPORTE DE PEDIDOS ===
+PED-4 | Maria Fernandez | VIN-MALBEC-750 x4 | PENDIENTE | $34000.0
+PED-3 | Ana Gomez | DUL-MEMBRILLO-400 x4 | PENDIENTE | $16400.0
+PED-2 | Roberto Sanchez | ACE-OLIVA-500 x5 | CANCELADO | $31000.0 | URGENTE
+PED-1 | Maria Fernandez | VIN-MALBEC-750 x2 | PREPARACION | $18200.0
+--- Pendientes: 2
+--- Pagados: 0
+--- En preparacion: 1
+--- Despachados: 0
+--- Entregados: 0
+--- Cancelados: 1
+--- Facturado: $68600.0
+
