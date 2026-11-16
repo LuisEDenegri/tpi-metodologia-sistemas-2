@@ -477,12 +477,13 @@ public class SondaDeRegresion {
 
         verificar("se podia poner el stock en -999 y el estado en 'INVENTADO'",
                 stockProtegido && pedidosProtegidos && transicionProtegida,
-                "Las colecciones salen protegidas por dos mecanismos distintos: pedidos y "
-                        + "clientes como vista inmutable (el put lanza excepcion) y el stock "
-                        + "como copia defensiva (el put funciona, pero sobre la copia y no "
-                        + "toca el inventario real). El estado solo cambia por transiciones "
-                        + "validas, y un estado inexistente ya ni siquiera compila porque "
-                        + "EstadoPedido es un enum.");
+                "Las tres colecciones salen como vista inmutable, asi que el put externo "
+                        + "lanza UnsupportedOperationException en vez de aceptarse en "
+                        + "silencio. El stock ademas es copia: el envoltorio hace que la "
+                        + "escritura ilegal falle ruidosamente y la copia garantiza que, aun "
+                        + "si alguien la desenvolviera, no toque el inventario real. El "
+                        + "estado solo cambia por transiciones validas, y un estado "
+                        + "inexistente ya ni siquiera compila porque EstadoPedido es un enum.");
     }
 
     static void d14OrdenNoDeterminista() {

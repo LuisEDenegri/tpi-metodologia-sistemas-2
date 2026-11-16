@@ -51,30 +51,68 @@ el diseño y permite compilar y ejecutar con un JDK limpio.
 
 ## Instalación y uso
 
-Requiere un JDK 17 o superior (`javac --version` para verificar).
+Requiere un JDK 17 o superior (`javac --version` para verificar). No hay que
+instalar nada más: no usa Maven ni descarga dependencias.
 
 ```bash
-# compilar
-javac -d out -encoding UTF-8 src/pedidos/*.java
+# compilar (las dos sondas de diagnóstico quedan afuera a propósito, ver abajo)
+javac -d out -encoding UTF-8 \
+  $(find src -name "*.java" -not -name "SondaDeDefectos.java" -not -name "SondaRevision.java")
 
 # ejecutar la demostración
 java -cp out pedidos.Main
 ```
 
+En PowerShell, el mismo compilado:
+
+```powershell
+$fuentes = Get-ChildItem src -Recurse -Filter *.java |
+    Where-Object { $_.Name -notin 'SondaDeDefectos.java','SondaRevision.java' }
+javac -d out -encoding UTF-8 $fuentes.FullName
+```
+
 ### Ejecutar las pruebas
 
 ```bash
-javac -d out -encoding UTF-8 src/pedidos/*.java src/pedidos/pruebas/*.java
-java -cp out pedidos.pruebas.CorridaDePruebas
+java -cp out pedidos.pruebas.CorridaDePruebas              # resumen
+java -cp out pedidos.pruebas.CorridaDePruebas --detallado  # caso por caso
 ```
+
+Resultado esperado: **62 casos de caracterización + 50 de comportamiento
+correcto, todos en verde**, y D-03 nombrado como defecto abierto por decisión
+explícita (ver `docs/decisiones-tecnicas.md`, D11).
+
+### Verificar que los defectos no reaparecieron
+
+```bash
+java -cp out sondas.SondaDeRegresion
+```
+
+Re-ejecuta contra el sistema refactorizado los mismos escenarios que exhibían
+cada defecto en el diagnóstico. Un defecto no se da por corregido porque el
+refactoring "debería" haberlo arreglado, sino porque se corre el escenario y
+el sistema ya no se comporta así.
 
 ## Estructura del repositorio
 
 ```
-src/pedidos/          código fuente
-docs/                 checklist de code review, evidencias y decisiones técnicas
+src/pedidos/          código del dominio
+src/pedidos/pruebas/  runner propio y las dos suites de pruebas
+src/sondas/           sondas de diagnóstico y de regresión
+docs/                 checklist de code review y decisiones técnicas
+docs/evidencias/      salidas de ejecución antes/después
 README.md             este archivo
 ```
+
+### Las dos sondas que no compilan
+
+`SondaDeDefectos` y `SondaRevision` están escritas contra la API del **sistema
+base** y se excluyen del compilado a propósito: son evidencia histórica del
+estado inicial. Migrarlas a la API nueva las convertiría en otra cosa.
+
+Su código sigue siendo compilable en el tag `estado-inicial`, y su salida está
+archivada en `docs/evidencias/`. Para el estado final existe
+`SondaDeRegresion`, que sí compila y corre.
 
 ## Tags de estado
 
@@ -91,7 +129,24 @@ Para ver el contraste antes/después:
 
 ```bash
 git diff estado-inicial estado-refactorizado -- src/
+git log --oneline estado-inicial..estado-refactorizado
 ```
+
+## Resultado del trabajo
+
+| | |
+|---|---|
+| Defectos confirmados en el diagnóstico | 14 |
+| Corregidos y verificados por ejecución | 13 |
+| Abiertos por decisión explícita | 1 (D-03, ver `docs/decisiones-tecnicas.md`) |
+| Hipótesis descartadas, sin regresión | 1 |
+| Casos de prueba | 112 |
+
+El code review posterior al refactoring levantó 13 observaciones y las 13 se
+reprodujeron ejecutando código: cero falsos positivos. **Tres de los cuatro
+hallazgos críticos son defectos que el propio refactoring introdujo o
+reabrió** mientras corregía otros. Está desarrollado en
+`docs/checklist-code-review.md`.
 
 ## Datos
 
