@@ -76,13 +76,11 @@ public class PedidoManager {
      * persistido que nunca compro nada. Ahora se valida todo primero y recien
      * despues se escribe: o pasan las dos cosas, o no pasa ninguna.
      *
-     * @return el numero de pedido, o null si fue rechazado.
+     * @return el numero de pedido, o null si fue rechazado. Para saber POR QUE
+     *         fue rechazado, usar {@link #motivoDeRechazo(SolicitudDePedido)}.
      */
     public String registrar(SolicitudDePedido solicitud) {
-        if (solicitud == null || !solicitud.esValida()) {
-            return null;
-        }
-        if (!inventario.haySuficiente(solicitud.codigoProducto(), solicitud.cantidad())) {
+        if (motivoDeRechazo(solicitud) != null) {
             return null;
         }
 
@@ -95,6 +93,37 @@ public class PedidoManager {
 
         notificarAltaDePedido(cliente, pedido);
         return pedido.numero();
+    }
+
+    /**
+     * Por que seria rechazada esta solicitud, o null si se puede registrar.
+     *
+     * SolicitudDePedido ya sabia explicar con precision por que una solicitud
+     * es invalida ("La cantidad debe ser mayor a cero, se recibio -5"), pero
+     * registrar() descartaba ese mensaje y devolvia null a secas. Para quien
+     * llamaba, "cantidad negativa" y "no hay stock" eran el mismo resultado y
+     * no habia forma de distinguirlos ni de avisarle al usuario que paso. Se
+     * habia construido la capacidad de diagnostico y la fachada la bloqueaba.
+     *
+     * Se expone como consulta aparte y no cambiando el tipo de retorno de
+     * registrar() para no romper a quien ya lo usa: el que solo necesita saber
+     * si entro o no sigue mirando el null, y el que quiere explicarle el
+     * rechazo al usuario pregunta aca.
+     */
+    public String motivoDeRechazo(SolicitudDePedido solicitud) {
+        if (solicitud == null) {
+            return "No se recibio ninguna solicitud";
+        }
+        String motivo = solicitud.motivoDeRechazo();
+        if (motivo != null) {
+            return motivo;
+        }
+        if (!inventario.haySuficiente(solicitud.codigoProducto(), solicitud.cantidad())) {
+            return "No hay stock suficiente de " + solicitud.codigoProducto()
+                    + ": se piden " + solicitud.cantidad()
+                    + " y hay " + inventario.disponible(solicitud.codigoProducto());
+        }
+        return null;
     }
 
     /**
@@ -134,6 +163,10 @@ public class PedidoManager {
         String codigo = pedido.codigoProducto();
         if (inventario.tieneStockBajo(codigo)) {
             notificador.notificarStockBajo(codigo, inventario.disponible(codigo));
+            // El evento se registra aca y no adentro del notificador: asi el
+            // comportamiento es el mismo con cualquier implementacion de la
+            // interfaz, y la secuencia completa se lee en un solo lugar.
+            notificador.registrarEvento("STOCK_BAJO", codigo);
         }
     }
 

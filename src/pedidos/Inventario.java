@@ -36,6 +36,7 @@ public class Inventario {
 
     /** Suma un ingreso de mercaderia al stock existente. */
     public void ingresar(String codigoProducto, int cantidad) {
+        exigirCodigo(codigoProducto);
         if (cantidad <= 0) {
             throw new IllegalArgumentException(
                     "El ingreso debe ser positivo, se recibio " + cantidad);
@@ -44,10 +45,23 @@ public class Inventario {
     }
 
     /**
+     * La validacion cubria la cantidad y dejaba afuera el codigo: se podia
+     * cargar stock con codigo null y quedaba una entrada {null=5} que ningun
+     * pedido iba a referenciar nunca, pero que ensuciaba el inventario y
+     * cualquier recorrido del mapa. Un producto sin codigo no es un producto.
+     */
+    private static void exigirCodigo(String codigoProducto) {
+        if (codigoProducto == null || codigoProducto.trim().isEmpty()) {
+            throw new IllegalArgumentException("El codigo de producto es obligatorio");
+        }
+    }
+
+    /**
      * Fija el stock al resultado de un recuento fisico, descartando el valor
      * anterior. Es lo que hacia cargarStock, pero ahora el nombre lo dice.
      */
     public void fijar(String codigoProducto, int cantidad) {
+        exigirCodigo(codigoProducto);
         if (cantidad < 0) {
             throw new IllegalArgumentException(
                     "El stock no puede ser negativo, se recibio " + cantidad);

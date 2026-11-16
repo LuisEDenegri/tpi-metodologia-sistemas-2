@@ -78,11 +78,6 @@ public final class Dinero implements Comparable<Dinero> {
         return this.monto.signum() == 0;
     }
 
-    /** Valor numerico. Solo para interoperar con codigo que todavia usa double. */
-    public double valor() {
-        return monto.doubleValue();
-    }
-
     /** Formato argentino: punto para miles, coma para decimales. */
     @Override
     public String toString() {

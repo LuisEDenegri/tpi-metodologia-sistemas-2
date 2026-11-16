@@ -28,7 +28,7 @@ public class FiltroDePedidos {
     private EstadoPedido estado;
     private String provincia;
     private Dinero montoMinimo;
-    private Boolean urgente;
+    private boolean soloUrgentes;
     private String codigoProducto;
 
     public FiltroDePedidos conEstado(EstadoPedido estado) {
@@ -47,7 +47,7 @@ public class FiltroDePedidos {
     }
 
     public FiltroDePedidos soloUrgentes() {
-        this.urgente = true;
+        this.soloUrgentes = true;
         return this;
     }
 
@@ -120,8 +120,16 @@ public class FiltroDePedidos {
         return montoMinimo == null || p.total().esMayorOIgualA(montoMinimo);
     }
 
+    /**
+     * El campo era Boolean con tres estados posibles (null, false, true) pero
+     * el unico setter asigna true, asi que la rama "false" era codigo muerto:
+     * no existia forma de alcanzarla. Un boolean simple expresa exactamente los
+     * dos casos que el filtro tiene: o pide solo urgentes, o no filtra por
+     * urgencia. Si alguna vez hace falta listar los NO urgentes, se agrega el
+     * setter que falta y ahi si el tercer estado tendra sentido.
+     */
     private boolean cumpleUrgencia(Pedido p) {
-        return urgente == null || !urgente || p.esUrgente();
+        return !soloUrgentes || p.esUrgente();
     }
 
     private boolean cumpleProducto(Pedido p) {

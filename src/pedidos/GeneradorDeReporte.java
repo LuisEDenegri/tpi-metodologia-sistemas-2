@@ -44,12 +44,12 @@ public class GeneradorDeReporte {
             sb.append(lineaDe(p, clientes.get(p.documentoCliente()))).append("\n");
         }
 
-        sb.append("--- Pendientes: ").append(conteo.get(EstadoPedido.PENDIENTE)).append("\n");
-        sb.append("--- Pagados: ").append(conteo.get(EstadoPedido.PAGADO)).append("\n");
-        sb.append("--- En preparacion: ").append(conteo.get(EstadoPedido.PREPARACION)).append("\n");
-        sb.append("--- Despachados: ").append(conteo.get(EstadoPedido.DESPACHADO)).append("\n");
-        sb.append("--- Entregados: ").append(conteo.get(EstadoPedido.ENTREGADO)).append("\n");
-        sb.append("--- Cancelados: ").append(conteo.get(EstadoPedido.CANCELADO)).append("\n");
+        // Un solo recorrido para los seis totales. Si manana se agrega un
+        // estado al enum, aparece en el reporte sin tocar esta clase.
+        for (EstadoPedido estado : EstadoPedido.values()) {
+            sb.append("--- ").append(estado.etiquetaPlural()).append(": ")
+                    .append(conteo.get(estado)).append("\n");
+        }
         sb.append("--- Facturado: $").append(facturado).append("\n");
 
         return sb.toString();

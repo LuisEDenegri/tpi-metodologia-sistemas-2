@@ -60,12 +60,25 @@ public class NotificadorPorEmail implements Notificador {
                 "mail a " + cliente.email());
     }
 
+    /**
+     * Avisa al deposito y nada mas.
+     *
+     * LSP: antes este metodo registraba ademas el evento STOCK_BAJO por su
+     * cuenta, cosa que NotificadorSilencioso no hacia. Las dos implementaciones
+     * de la misma interfaz tenian comportamiento observable distinto, asi que
+     * sustituir una por otra cambiaba el resultado: el evento existia en
+     * produccion y era invisible desde las pruebas, que es justo lo que el
+     * notificador de pruebas viene a evitar.
+     *
+     * La interfaz nunca dijo si avisar implica registrar un evento, y cada
+     * implementacion contesto distinto. La decision pasa al coordinador, que es
+     * donde estan los demas registrarEvento y donde se puede leer completa.
+     */
     @Override
     public void notificarStockBajo(String codigoProducto, int disponible) {
         intentar(() -> emailService.enviar(MAIL_DE_DEPOSITO,
                         "Stock bajo de " + codigoProducto + ": quedan " + disponible),
                 "aviso de stock bajo de " + codigoProducto);
-        registrarEvento("STOCK_BAJO", codigoProducto);
     }
 
     @Override

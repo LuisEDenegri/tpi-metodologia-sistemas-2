@@ -29,12 +29,32 @@ import java.util.Set;
  */
 public enum EstadoPedido {
 
-    PENDIENTE,
-    PAGADO,
-    PREPARACION,
-    DESPACHADO,
-    ENTREGADO,
-    CANCELADO;
+    PENDIENTE("Pendientes"),
+    PAGADO("Pagados"),
+    PREPARACION("En preparacion"),
+    DESPACHADO("Despachados"),
+    ENTREGADO("Entregados"),
+    CANCELADO("Cancelados");
+
+    /**
+     * Como se nombra este estado en el reporte, en plural.
+     *
+     * Vive aca y no en el generador porque el reporte imprimia seis lineas
+     * escritas a mano mientras contaba recorriendo values(). Agregar un estado
+     * al enum lo contaba pero no lo imprimia, sin ningun error que lo delatara:
+     * un dato faltaba en el reporte y nadie se enteraba. Con la etiqueta en el
+     * enum, cada estado nuevo trae la suya y el generador no necesita saber
+     * cuantos hay.
+     */
+    private final String etiquetaPlural;
+
+    EstadoPedido(String etiquetaPlural) {
+        this.etiquetaPlural = etiquetaPlural;
+    }
+
+    public String etiquetaPlural() {
+        return etiquetaPlural;
+    }
 
     private Set<EstadoPedido> siguientes = Collections.emptySet();
 
