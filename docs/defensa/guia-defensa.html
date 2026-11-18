@@ -1,0 +1,1080 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Defensa del TPI</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,600;1,6..72,400&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: columna única de lectura larga, con barra de navegación lateral fija en desktop.
+   Paleta: papel cálido de apunte técnico + tinta azul de bolígrafo + rojo de corrección. */
+:root {
+  --papel: #faf8f4;
+  --papel-hund: #f1ece3;
+  --tinta: #22201d;
+  --tinta-suave: #5f5a52;
+  --linea: #ddd6c9;
+  --azul: #1d4f91;
+  --azul-claro: #e8eff8;
+  --rojo: #a62639;
+  --rojo-claro: #fbecee;
+  --verde: #2f6b45;
+  --verde-claro: #e7f1ea;
+
+  --display: "Newsreader", Georgia, "Times New Roman", serif;
+  --texto: "IBM Plex Sans", system-ui, -apple-system, sans-serif;
+  --mono: "IBM Plex Mono", "SF Mono", Consolas, monospace;
+
+  color-scheme: light;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --papel: #16161a;
+    --papel-hund: #1e1e24;
+    --tinta: #e8e4dd;
+    --tinta-suave: #a09a90;
+    --linea: #33333c;
+    --azul: #86b4ee;
+    --azul-claro: #16263c;
+    --rojo: #f0919f;
+    --rojo-claro: #341a20;
+    --verde: #8cc9a3;
+    --verde-claro: #16281d;
+    color-scheme: dark;
+  }
+}
+
+:root[data-theme="dark"] {
+  --papel: #16161a;
+  --papel-hund: #1e1e24;
+  --tinta: #e8e4dd;
+  --tinta-suave: #a09a90;
+  --linea: #33333c;
+  --azul: #86b4ee;
+  --azul-claro: #16263c;
+  --rojo: #f0919f;
+  --rojo-claro: #341a20;
+  --verde: #8cc9a3;
+  --verde-claro: #16281d;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+img { max-width: 100%; height: auto; }
+[hidden] { display: none !important; }
+
+body {
+  background: var(--papel);
+  color: var(--tinta);
+  font-family: var(--texto);
+  font-size: 16px;
+  line-height: 1.65;
+  margin: 0;
+}
+
+.envoltorio {
+  max-width: 1180px;
+  margin: 0 auto;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 0 72px;
+}
+
+.columnas {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 40px;
+  align-items: start;
+}
+
+@media (min-width: 1000px) {
+  .columnas { grid-template-columns: 220px minmax(0, 1fr); gap: 56px; }
+}
+
+/* ---------- navegación ---------- */
+nav.indice {
+  display: none;
+  position: sticky;
+  top: calc(env(safe-area-inset-top, 0px) + 24px);
+  font-size: 13.5px;
+  line-height: 1.5;
+  border-left: 2px solid var(--linea);
+  padding-left: 16px;
+}
+@media (min-width: 1000px) { nav.indice { display: block; } }
+
+nav.indice a {
+  display: block;
+  color: var(--tinta-suave);
+  text-decoration: none;
+  padding: 5px 0;
+  border-left: 2px solid transparent;
+  margin-left: -18px;
+  padding-left: 16px;
+  transition: color .15s, border-color .15s;
+}
+nav.indice a:hover, nav.indice a:focus-visible { color: var(--azul); border-left-color: var(--azul); }
+nav.indice .grupo {
+  font-family: var(--mono);
+  font-size: 10.5px;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--tinta-suave);
+  opacity: .65;
+  margin: 18px 0 6px;
+}
+nav.indice .grupo:first-child { margin-top: 0; }
+
+/* ---------- encabezado ---------- */
+header.portada {
+  padding-block: 56px 36px;
+  border-bottom: 1px solid var(--linea);
+  margin-bottom: 44px;
+}
+
+.eyebrow {
+  font-family: var(--mono);
+  font-size: 11.5px;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--tinta-suave);
+  margin: 0 0 18px;
+}
+
+h1 {
+  font-family: var(--display);
+  font-weight: 600;
+  font-size: clamp(2.1rem, 6vw, 3.3rem);
+  line-height: 1.1;
+  letter-spacing: -.02em;
+  text-wrap: balance;
+  margin: 0 0 20px;
+}
+
+.bajada {
+  font-family: var(--display);
+  font-size: clamp(1.05rem, 2.4vw, 1.3rem);
+  line-height: 1.5;
+  color: var(--tinta-suave);
+  max-width: 62ch;
+  margin: 0 0 28px;
+}
+
+.ficha {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 28px;
+  font-size: 14px;
+  color: var(--tinta-suave);
+}
+.ficha b { color: var(--tinta); font-weight: 600; }
+
+/* ---------- secciones ---------- */
+section { margin-bottom: 60px; scroll-margin-top: 24px; }
+
+h2 {
+  font-family: var(--display);
+  font-weight: 600;
+  font-size: clamp(1.55rem, 3.6vw, 2.05rem);
+  line-height: 1.2;
+  letter-spacing: -.015em;
+  text-wrap: balance;
+  margin: 0 0 6px;
+  padding-top: 6px;
+}
+
+.subtitulo-seccion {
+  color: var(--tinta-suave);
+  font-size: 15px;
+  margin: 0 0 26px;
+  max-width: 64ch;
+}
+
+h3 {
+  font-family: var(--texto);
+  font-weight: 600;
+  font-size: 1.08rem;
+  line-height: 1.35;
+  margin: 32px 0 10px;
+  text-wrap: balance;
+}
+
+h4 {
+  font-family: var(--mono);
+  font-weight: 500;
+  font-size: 11.5px;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--tinta-suave);
+  margin: 0 0 8px;
+}
+
+p { margin: 0 0 15px; max-width: 70ch; }
+ul, ol { margin: 0 0 15px; padding-left: 22px; max-width: 70ch; }
+li { margin-bottom: 7px; }
+
+strong { font-weight: 600; }
+em { font-style: italic; }
+
+code {
+  font-family: var(--mono);
+  font-size: .87em;
+  background: var(--papel-hund);
+  border: 1px solid var(--linea);
+  border-radius: 3px;
+  padding: 1px 5px;
+}
+
+/* ---------- bloques especiales ---------- */
+.definicion {
+  background: var(--azul-claro);
+  border-left: 3px solid var(--azul);
+  padding: 16px 18px;
+  margin: 0 0 18px;
+  border-radius: 0 4px 4px 0;
+  max-width: 70ch;
+}
+.definicion p:last-child { margin-bottom: 0; }
+.definicion .termino {
+  font-family: var(--mono);
+  font-size: 11.5px;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: var(--azul);
+  display: block;
+  margin-bottom: 6px;
+  font-weight: 500;
+}
+
+.alerta {
+  background: var(--rojo-claro);
+  border-left: 3px solid var(--rojo);
+  padding: 16px 18px;
+  margin: 0 0 18px;
+  border-radius: 0 4px 4px 0;
+  max-width: 70ch;
+}
+.alerta p:last-child { margin-bottom: 0; }
+.alerta .termino {
+  font-family: var(--mono);
+  font-size: 11.5px;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: var(--rojo);
+  display: block;
+  margin-bottom: 6px;
+  font-weight: 500;
+}
+
+.clave {
+  background: var(--verde-claro);
+  border-left: 3px solid var(--verde);
+  padding: 16px 18px;
+  margin: 0 0 18px;
+  border-radius: 0 4px 4px 0;
+  max-width: 70ch;
+}
+.clave p:last-child { margin-bottom: 0; }
+.clave .termino {
+  font-family: var(--mono);
+  font-size: 11.5px;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: var(--verde);
+  display: block;
+  margin-bottom: 6px;
+  font-weight: 500;
+}
+
+pre {
+  font-family: var(--mono);
+  font-size: 12.5px;
+  line-height: 1.55;
+  background: var(--papel-hund);
+  border: 1px solid var(--linea);
+  border-radius: 5px;
+  padding: 14px 16px;
+  overflow-x: auto;
+  margin: 0 0 18px;
+}
+pre code { background: none; border: none; padding: 0; font-size: inherit; }
+
+.tabla-caja { overflow-x: auto; margin: 0 0 20px; }
+table {
+  border-collapse: collapse;
+  width: 100%;
+  min-width: 480px;
+  font-size: 14.5px;
+}
+th, td {
+  text-align: left;
+  padding: 9px 12px;
+  border-bottom: 1px solid var(--linea);
+  vertical-align: top;
+}
+th {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: var(--tinta-suave);
+  font-weight: 500;
+  border-bottom: 1.5px solid var(--tinta-suave);
+}
+td.num { font-variant-numeric: tabular-nums; }
+
+/* ---------- preguntas ---------- */
+.pregunta {
+  border: 1px solid var(--linea);
+  border-radius: 6px;
+  margin: 0 0 14px;
+  background: var(--papel-hund);
+  overflow: hidden;
+}
+.pregunta summary {
+  cursor: pointer;
+  padding: 14px 18px;
+  font-weight: 600;
+  font-size: 15.5px;
+  line-height: 1.4;
+  list-style: none;
+  display: flex;
+  gap: 12px;
+  align-items: baseline;
+}
+.pregunta summary::-webkit-details-marker { display: none; }
+.pregunta summary::before {
+  content: "▸";
+  color: var(--azul);
+  font-size: 13px;
+  flex-shrink: 0;
+  transition: transform .15s;
+  display: inline-block;
+}
+.pregunta[open] summary::before { transform: rotate(90deg); }
+.pregunta summary:hover { color: var(--azul); }
+.pregunta .cuerpo {
+  padding: 2px 18px 16px 42px;
+  border-top: 1px solid var(--linea);
+  padding-top: 14px;
+}
+.pregunta .cuerpo p:last-child, .pregunta .cuerpo ul:last-child { margin-bottom: 0; }
+.dificil summary::before { color: var(--rojo); }
+
+.guion {
+  font-family: var(--display);
+  font-size: 1.02rem;
+  line-height: 1.6;
+  border-left: 3px solid var(--tinta-suave);
+  padding: 4px 0 4px 18px;
+  margin: 0 0 16px;
+  color: var(--tinta);
+  max-width: 66ch;
+}
+
+.dos-col {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 18px;
+  margin: 0 0 20px;
+}
+@media (min-width: 720px) { .dos-col { grid-template-columns: 1fr 1fr; } }
+.dos-col > div { min-width: 0; }
+
+.caja {
+  border: 1px solid var(--linea);
+  border-radius: 5px;
+  padding: 16px 18px;
+  background: var(--papel-hund);
+}
+.caja p:last-child, .caja ul:last-child { margin-bottom: 0; }
+
+.cifras {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(128px, 1fr));
+  gap: 1px;
+  background: var(--linea);
+  border: 1px solid var(--linea);
+  border-radius: 5px;
+  overflow: hidden;
+  margin: 0 0 22px;
+}
+.cifra { background: var(--papel); padding: 14px 16px; }
+.cifra .n {
+  font-family: var(--display);
+  font-size: 1.9rem;
+  font-weight: 600;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  display: block;
+  margin-bottom: 4px;
+}
+.cifra .et { font-size: 12.5px; color: var(--tinta-suave); line-height: 1.35; display: block; }
+
+.nota-pie {
+  font-size: 13.5px;
+  color: var(--tinta-suave);
+  border-top: 1px solid var(--linea);
+  padding-top: 16px;
+  margin-top: 32px;
+  max-width: 70ch;
+}
+
+a { color: var(--azul); }
+:focus-visible { outline: 2px solid var(--azul); outline-offset: 2px; border-radius: 2px; }
+
+@media (prefers-reduced-motion: reduce) {
+  * { transition: none !important; animation: none !important; }
+}
+</style>
+</head>
+<body>
+<div class="envoltorio">
+
+<header class="portada">
+  <p class="eyebrow">Metodología de Sistemas II · UTN · Guía de defensa oral</p>
+  <h1>Cómo defender el trabajo integrador</h1>
+  <p class="bajada">Todo lo que hay que saber para sostener una defensa de este TPI, empezando por los conceptos de la materia. Cada afirmación del trabajo está respaldada por algo que se puede ejecutar delante del profesor.</p>
+  <div class="ficha">
+    <span><b>Caso:</b> Gestión de pedidos, Distribuidora Cuyo</span>
+    <span><b>Integrantes:</b> Luis Denegri y Tomás Saavedra</span>
+    <span><b>Resultado:</b> 13 de 14 defectos corregidos</span>
+  </div>
+</header>
+
+<div class="columnas">
+
+<nav class="indice" aria-label="Índice">
+  <p class="grupo">Conceptos</p>
+  <a href="#idea">La idea central</a>
+  <a href="#calidad">Calidad externa e interna</a>
+  <a href="#deuda">Deuda técnica</a>
+  <a href="#smells">Code smells</a>
+  <a href="#refactoring">Refactoring</a>
+  <a href="#solid">SOLID</a>
+  <a href="#pruebas">Pruebas</a>
+  <p class="grupo">El trabajo</p>
+  <a href="#sistema">El sistema base</a>
+  <a href="#diagnostico">Diagnóstico</a>
+  <a href="#que-hicimos">Qué refactorizamos</a>
+  <a href="#red">La red de pruebas</a>
+  <a href="#review">El code review</a>
+  <a href="#abierto">El defecto abierto</a>
+  <p class="grupo">La defensa</p>
+  <a href="#demo">Demostración en vivo</a>
+  <a href="#preguntas">Preguntas probables</a>
+  <a href="#dificiles">Preguntas difíciles</a>
+  <a href="#glosario">Glosario</a>
+</nav>
+
+<main>
+
+<section id="idea">
+  <h2>La idea central del trabajo</h2>
+  <p class="subtitulo-seccion">Si se entiende solo esto, ya se puede sostener gran parte de la defensa.</p>
+
+  <p>Un programa puede funcionar perfecto y estar mal hecho por dentro. Esas son dos cosas distintas, y la materia entera gira alrededor de esa distinción.</p>
+
+  <p>Pensalo como una casa. Un comprador entra, abre las canillas, prende las luces, y todo anda. Eso es lo que él puede ver. Pero detrás de la pared puede haber instalación eléctrica empalmada con cinta, caños de agua mal soldados, y ninguna documentación de por dónde pasa cada cosa. La casa funciona. El día que haya que mover un enchufe, va a costar diez veces más de lo que debería, y existe el riesgo de romper algo que hoy anda bien.</p>
+
+  <p>El software es igual. Nuestro trabajo <strong>no fue agregar funciones nuevas</strong>. Fue agarrar un sistema que ya andaba y arreglarlo por dentro, demostrando que por fuera sigue haciendo exactamente lo mismo.</p>
+
+  <div class="clave">
+    <span class="termino">La frase para empezar la defensa</span>
+    <p>"Tomamos un sistema que funcionaba y le mejoramos la calidad interna sin agregarle funcionalidad. Todo lo que afirmamos lo podemos demostrar ejecutando código."</p>
+  </div>
+</section>
+
+<section id="calidad">
+  <h2>Calidad externa y calidad interna</h2>
+  <p class="subtitulo-seccion">Es la primera etapa del trabajo y uno de los criterios de evaluación (15%).</p>
+
+  <div class="definicion">
+    <span class="termino">Calidad externa</span>
+    <p>Lo que percibe quien usa el sistema: que haga lo que promete, que no se cuelgue, que los resultados sean correctos. Se mide usándolo.</p>
+  </div>
+
+  <div class="definicion">
+    <span class="termino">Calidad interna</span>
+    <p>Cómo está escrito y organizado el código por dentro. No se percibe usando el sistema. Determina cuánto cuesta y cuánto riesgo tiene cada cambio futuro.</p>
+  </div>
+
+  <p>Lo importante, y lo que conviene decir en la defensa, es que <strong>son independientes</strong>. Nuestro sistema tenía calidad externa buena y calidad interna mala, al mismo tiempo, el mismo día.</p>
+
+  <div class="dos-col">
+    <div class="caja">
+      <h4>Lo que veía el usuario</h4>
+      <p>Registraba pedidos, cambiaba estados, emitía el reporte. Sin errores visibles en el uso normal.</p>
+    </div>
+    <div class="caja">
+      <h4>Lo que había adentro</h4>
+      <p>Una sola clase de 305 líneas que hacía todo. Un método de 87 líneas con 13 parámetros. Otro de 57 líneas de condiciones anidadas.</p>
+    </div>
+  </div>
+
+  <p>La consecuencia práctica: cualquier cambio obligaba a tocar ese archivo gigante, con riesgo de romper algo no relacionado. Eso es lo que la materia llama <em>costo del cambio</em>, y es la razón por la que la calidad interna importa aunque el usuario no la vea.</p>
+</section>
+
+<section id="deuda">
+  <h2>Deuda técnica</h2>
+
+  <div class="definicion">
+    <span class="termino">Deuda técnica</span>
+    <p>La metáfora es de Ward Cunningham. Cuando se resuelve algo rápido y mal para salir del paso, se "pide prestado" tiempo: hoy se entrega antes, pero cada cambio futuro sobre esa zona cuesta un poco más. Ese sobrecosto son los <em>intereses</em>. Si nunca se paga el capital (refactorizando), los intereses se siguen cobrando para siempre.</p>
+  </div>
+
+  <p>No toda la deuda es mala. A veces conviene tomarla conscientemente para llegar a una fecha. El problema es la deuda que nadie registró y nadie decidió: se acumula sola.</p>
+
+  <p>Nuestro sistema tenía un caso de libro, y lo mejor es que <strong>estaba confesado en un comentario del propio código</strong>:</p>
+
+  <pre><code>// Esta clase nacio como el modulo de inventario, despues se le
+// fue agregando lo de pedidos, despues los clientes, despues el
+// reporte y las notificaciones.
+// TODO: habria que partirla en algun momento.</code></pre>
+
+  <div class="clave">
+    <span class="termino">Frase para la defensa</span>
+    <p>"La deuda técnica de este sistema no la detectamos nosotros primero: estaba declarada en un comentario que decía que algún día había que partir la clase. Ese 'algún día' nunca llega solo. Este trabajo fue ese día."</p>
+  </div>
+</section>
+
+<section id="smells">
+  <h2>Code smells</h2>
+  <p class="subtitulo-seccion">Segundo criterio de evaluación, y el de mayor peso junto con SOLID y refactoring (20%).</p>
+
+  <div class="definicion">
+    <span class="termino">Code smell (olor en el código)</span>
+    <p>Término de Kent Beck y Martin Fowler. Es un síntoma en el código que sugiere un problema de diseño más profundo. No es un error: el programa funciona igual. Es una señal de que algo va a doler más adelante. Se llama "olor" justamente porque no es una falla, es un indicio.</p>
+  </div>
+
+  <p>La consigna pedía identificar al menos 8. Estos son los principales que encontramos, con el nombre técnico que conviene usar en la defensa:</p>
+
+  <div class="tabla-caja">
+    <table>
+      <thead>
+        <tr><th>Nombre técnico</th><th>Qué significa en castellano</th><th>Dónde estaba</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><strong>God Class</strong><br>(clase dios)</td><td>Una clase que hace demasiadas cosas distintas</td><td><code>PedidoManager</code>, 305 líneas: inventario, pedidos, clientes, reporte y avisos</td></tr>
+        <tr><td><strong>Long Method</strong><br>(método largo)</td><td>Una función tan larga que no entra en una pantalla y no se puede seguir</td><td><code>registrarPedido</code>, 87 líneas</td></tr>
+        <tr><td><strong>Long Parameter List</strong></td><td>Demasiados datos sueltos de entrada</td><td>El mismo método, 13 parámetros</td></tr>
+        <tr><td><strong>Primitive Obsession</strong><br>(obsesión por tipos básicos)</td><td>Usar números y textos crudos donde hacía falta un concepto propio</td><td>La plata guardada como <code>double</code>; el estado como texto libre</td></tr>
+        <tr><td><strong>Campos públicos mutables</strong></td><td>Los datos internos quedaban abiertos para que cualquiera los cambie</td><td>Los tres mapas de <code>PedidoManager</code></td></tr>
+        <tr><td><strong>Catch vacío</strong></td><td>Se atrapaba un error y no se hacía nada con él</td><td>El envío de notificaciones</td></tr>
+        <tr><td><strong>Duplicated Code</strong></td><td>La misma lógica escrita dos veces en lugares distintos</td><td>La reposición de stock al cancelar</td></tr>
+        <tr><td><strong>Nombre que miente</strong></td><td>El nombre dice una cosa y el código hace otra</td><td><code>cargarStock</code> reemplazaba el stock en vez de sumarlo</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>Los tres que conviene saber explicar a fondo</h3>
+
+  <p><strong>La plata en <code>double</code>.</strong> Un <code>double</code> es el tipo con el que las computadoras guardan números con coma, y <em>no es exacto</em>. El ejemplo clásico: en Java, <code>0.1 + 0.2</code> no da <code>0.3</code>, da <code>0.30000000000000004</code>. Sobre un pedido no se nota. Sobre miles de pedidos acumulados, la facturación del sistema no cierra contra la contabilidad, y nadie sabe por qué.</p>
+
+  <p><strong>El estado como texto libre.</strong> El estado de un pedido (pendiente, pagado, despachado) se guardaba como un texto cualquiera. Si alguien escribía <code>"PAGADA"</code> en lugar de <code>"PAGADO"</code>, el sistema lo aceptaba sin chistar y ese pedido quedaba en un estado que no existe. El programa no tenía forma de saber que eso estaba mal.</p>
+
+  <p><strong><code>cargarStock</code>, el nombre que miente.</strong> Este es el mejor ejemplo para la defensa porque el daño es concreto y económico. El método se llamaba "cargar stock", que suena a sumar. Pero reemplazaba el valor. El depositero que recibía 20 cajas y llamaba <code>cargarStock(20)</code> teniendo 50 en el sistema, acababa de borrar 50 unidades del inventario sin enterarse.</p>
+</section>
+
+<section id="refactoring">
+  <h2>Refactoring</h2>
+
+  <div class="definicion">
+    <span class="termino">Refactoring (refactorización)</span>
+    <p>Cambiar la estructura interna del código <strong>sin cambiar lo que el sistema hace visto desde afuera</strong>. Es la definición de Martin Fowler y la parte subrayada es lo esencial. Si cambia el comportamiento, no fue un refactoring: fue otra cosa.</p>
+  </div>
+
+  <p>La analogía: ordenar un placard. Entra la misma ropa y sale la misma ropa. Cambia dónde está cada cosa y qué tan rápido la encontrás. Si al ordenar tirás una camisa, eso no es ordenar, es otra cosa.</p>
+
+  <div class="alerta">
+    <span class="termino">La distinción que más rinde en la defensa</span>
+    <p><strong>Refactorizar</strong> cambia la estructura y no el comportamiento. <strong>Corregir un defecto</strong> cambia el comportamiento a propósito. Son operaciones distintas y las hicimos en pasos separados, con commits separados.</p>
+    <p>Si se mezclan, cuando algo deja de funcionar es imposible saber si lo rompiste sin querer o si lo cambiaste a propósito. Esa ambigüedad es exactamente lo que vuelve peligroso tocar código viejo.</p>
+  </div>
+
+  <h3>Los refactorings que aplicamos</h3>
+
+  <p>Cada uno tiene nombre propio en el catálogo de Fowler. Conviene nombrarlos así en la defensa.</p>
+
+  <div class="tabla-caja">
+    <table>
+      <thead>
+        <tr><th>Nombre</th><th>Qué hicimos</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Extract Class</strong><br>(extraer clase)</td>
+          <td>Partimos la clase de 305 líneas. El inventario se fue a <code>Inventario</code>, los precios a <code>PoliticaDeCostos</code>, el reporte a <code>GeneradorDeReporte</code>, la búsqueda a <code>FiltroDePedidos</code>. <code>PedidoManager</code> quedó como coordinador: recibe el pedido y le pide a cada uno lo suyo.</td>
+        </tr>
+        <tr>
+          <td><strong>Introduce Parameter Object</strong><br>(introducir objeto parámetro)</td>
+          <td>Los 13 parámetros sueltos pasaron a ser un solo objeto <code>SolicitudDePedido</code>. Con 13 parámetros seguidos, pasar dos en el orden equivocado compilaba igual y el error aparecía en producción.</td>
+        </tr>
+        <tr>
+          <td><strong>Move Method</strong><br>(mover método)</td>
+          <td>Las reglas de qué estado puede seguir a cuál se movieron al propio <code>Pedido</code>. Antes las decidía el coordinador con 57 líneas de condiciones anidadas.</td>
+        </tr>
+        <tr>
+          <td><strong>Replace Type Code with Enum</strong></td>
+          <td>El estado dejó de ser texto libre y pasó a ser un <code>enum</code>: una lista cerrada de valores posibles. Ahora escribir <code>"PAGADA"</code> no compila.</td>
+        </tr>
+        <tr>
+          <td><strong>Replace Primitive with Value Object</strong></td>
+          <td>La plata pasó de <code>double</code> a un tipo propio <code>Dinero</code>, construido sobre <code>BigDecimal</code>, que sí es exacto.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="definicion">
+    <span class="termino">enum</span>
+    <p>Abreviatura de <em>enumeration</em>. Es una lista cerrada de valores posibles, definida por el programador. Si los estados válidos son seis, el <code>enum</code> tiene seis y no existe un séptimo. La ventaja: el compilador rechaza cualquier valor que no esté en la lista, antes de que el programa llegue a ejecutarse.</p>
+  </div>
+
+  <div class="clave">
+    <span class="termino">Un detalle que suma si lo mencionás</span>
+    <p>Al pasar los estados a <code>enum</code>, "cancelado" quedó como estado final <strong>por definición</strong>, no porque una condición del código lo evitara. Antes, la protección contra cancelar dos veces dependía de que nadie reordenara un bloque de <code>if</code>. Ahora es una propiedad de la estructura.</p>
+  </div>
+</section>
+
+<section id="solid">
+  <h2>SOLID</h2>
+  <p class="subtitulo-seccion">Cinco principios de diseño. La sigla la armó Michael Feathers con la inicial de cada uno.</p>
+
+  <p>No hace falta recitarlos. Conviene saber explicar bien los que efectivamente aplicamos y ser honesto con los demás.</p>
+
+  <h3>S — Single Responsibility (responsabilidad única)</h3>
+  <p>Cada clase debería tener <strong>una sola razón para cambiar</strong>. Es el que más usamos. Antes, <code>PedidoManager</code> cambiaba si cambiaba una tarifa, si cambiaba el formato del reporte, si cambiaba una regla de stock o si cambiaba el texto de un mail. Cuatro motivos distintos tocando el mismo archivo. Ahora, si cambia una tarifa se toca <code>PoliticaDeCostos</code> y nada más.</p>
+
+  <h3>O — Open/Closed (abierto/cerrado)</h3>
+  <p>El código debería estar <strong>abierto a extenderse pero cerrado a modificarse</strong>: agregar un caso nuevo no debería obligar a editar lo que ya funciona. Nuestro caso: el reporte imprimía seis líneas escritas a mano, una por estado, mientras contaba recorriendo la lista. Si alguien agregaba un estado nuevo, el sistema lo <em>contaba</em> pero no lo <em>imprimía</em>, y ningún error avisaba. Movimos la etiqueta al <code>enum</code>: ahora cada estado nuevo trae la suya.</p>
+
+  <h3>L — Liskov Substitution (sustitución de Liskov)</h3>
+  <p>Si dos cosas prometen cumplir el mismo contrato, deben poder intercambiarse sin que se note la diferencia. Nuestro caso fue real y sutil: teníamos dos notificadores, el de producción (manda mails) y el de pruebas (no hace nada, para poder testear en silencio). El de producción registraba por su cuenta un evento de "stock bajo" que el de pruebas no registraba. Resultado: ese evento existía en producción y era <strong>invisible desde las pruebas</strong>, que es exactamente lo que el notificador de pruebas venía a evitar. Subimos esa decisión al coordinador, así los dos se comportan igual.</p>
+
+  <h3>I — Interface Segregation (segregación de interfaces)</h3>
+  <p>Nadie debería depender de métodos que no usa. <strong>No tuvimos nada que corregir acá</strong>: nuestra interfaz de notificación ya era mínima. Lo dejamos asentado en el informe como revisado y sin cambios necesarios. Decir "lo revisamos y no aplicaba" es mejor respuesta que inventar un ejemplo forzado.</p>
+
+  <h3>D — Dependency Inversion (inversión de dependencias)</h3>
+  <p>Depender de una <strong>abstracción</strong> (un contrato) en vez de una implementación concreta. <code>PedidoManager</code> no conoce el servicio de mail: conoce una interfaz <code>Notificador</code>. Por eso podemos enchufarle el notificador silencioso durante las pruebas sin tocar una línea de la lógica de negocio.</p>
+
+  <div class="definicion">
+    <span class="termino">Interfaz</span>
+    <p>Un contrato que dice <em>qué</em> operaciones existen, sin decir <em>cómo</em> se hacen. Como un enchufe: define la forma, y cualquier aparato que la respete se puede conectar. En nuestro caso, el contrato dice "sé notificar al cliente"; una implementación manda un mail y la otra no hace nada.</p>
+  </div>
+</section>
+
+<section id="pruebas">
+  <h2>Las pruebas, y por qué fueron primero</h2>
+  <p class="subtitulo-seccion">Esta es la parte más original del trabajo y la que más conviene saber defender.</p>
+
+  <p>El problema de fondo: queremos reestructurar el código sin cambiar lo que hace. ¿Cómo demostramos que no cambiamos nada? Decir "lo probé y anda" no alcanza, porque solo probaste lo que se te ocurrió probar.</p>
+
+  <div class="definicion">
+    <span class="termino">Prueba de caracterización</span>
+    <p>Técnica de Michael Feathers, de su libro <em>Working Effectively with Legacy Code</em>. Son pruebas que <strong>fijan cómo se comporta el sistema hoy</strong>, antes de tocarlo, incluyendo los comportamientos incorrectos. No describen lo que el sistema <em>debería</em> hacer: describen lo que <em>hace</em>.</p>
+  </div>
+
+  <p>Suena raro escribir una prueba que diga "acá el sistema calcula mal". Pero es exactamente lo que hace falta. Si después de refactorizar esa prueba se pone en rojo, sabés que cambiaste el comportamiento. Es la red de seguridad.</p>
+
+  <h3>Por qué hicimos dos conjuntos separados</h3>
+
+  <div class="tabla-caja">
+    <table>
+      <thead>
+        <tr><th>Conjunto</th><th>Arranca</th><th>Un rojo significa</th><th>Casos</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Caracterización</strong></td>
+          <td>En verde</td>
+          <td>Rompimos algo que funcionaba. Es una <em>regresión</em>.</td>
+          <td class="num">69</td>
+        </tr>
+        <tr>
+          <td><strong>Comportamiento correcto</strong></td>
+          <td>En rojo</td>
+          <td>Todavía falta corregir ese defecto. Cada caso que pasa a verde es un defecto resuelto.</td>
+          <td class="num">50</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="definicion">
+    <span class="termino">Regresión</span>
+    <p>Algo que antes funcionaba y dejó de funcionar por un cambio que hicimos. Es el riesgo principal al tocar código existente, y es justamente lo que la red de pruebas viene a detectar.</p>
+  </div>
+
+  <p>Si estuvieran mezclados en un solo conjunto, el número total no diría nada. Separados, cada corrida responde dos preguntas distintas: <em>¿rompí algo?</em> y <em>¿cuánto llevo corregido?</em></p>
+
+  <div class="clave">
+    <span class="termino">Frase para la defensa</span>
+    <p>"Escribimos las pruebas antes de tocar el código, y algunas fijan comportamientos que sabíamos que estaban mal. Esa era la idea: si después de refactorizar alguna se ponía en rojo sin que la hubiéramos tocado, sabíamos que habíamos roto algo."</p>
+  </div>
+</section>
+
+<section id="sistema">
+  <h2>El sistema base</h2>
+
+  <p>Es el módulo de pedidos de una distribuidora de productos regionales mendocinos. Lo reusamos de un trabajo anterior, y eso fue deliberado: ya tenía problemas reales, no problemas puestos a propósito para el TPI.</p>
+
+  <p><strong>Lo que hace:</strong> registrar un pedido, cambiarle el estado, asignarle un responsable, buscar con filtros y emitir un reporte.</p>
+
+  <p><strong>Tecnología:</strong> Java, sin librerías externas, con los datos en memoria. Las pruebas corren con un programa propio de unas 60 líneas en lugar de usar una herramienta estándar.</p>
+
+  <div class="alerta">
+    <span class="termino">Preparate para esta pregunta</span>
+    <p>Van a preguntar por qué no usaron JUnit, que es la herramienta estándar de pruebas en Java. La respuesta está en el informe (decisión D1): para que compile con un Java limpio, sin descargar nada. Si el día de la corrección falla una descarga, el trabajo no se puede ejecutar. Y lo que se evalúa es el análisis, no el andamiaje.</p>
+    <p>Decí también lo que se pierde, porque eso demuestra que fue una decisión y no un atajo: sin JUnit no hay ejecución selectiva de pruebas, ni reportes estándar, ni integración con herramientas de automatización.</p>
+  </div>
+</section>
+
+<section id="diagnostico">
+  <h2>Cómo diagnosticamos</h2>
+  <p class="subtitulo-seccion">Acá está la decisión metodológica que define el trabajo.</p>
+
+  <p>Nos pusimos una regla: <strong>no reportar ningún defecto que no pudiéramos exhibir ejecutando código</strong>.</p>
+
+  <p>Para eso escribimos lo que llamamos <em>sondas</em>: programas chicos que arman una situación, la ejecutan e imprimen el resultado. Si el defecto no aparece en la salida impresa, no se reporta.</p>
+
+  <div class="clave">
+    <span class="termino">El dato que mejor demuestra el método</span>
+    <p>Una de nuestras hipótesis <strong>era falsa</strong>. Creíamos que cancelar dos veces un pedido reponía el stock dos veces. La ejecutamos y no pasaba: el sistema original ya estaba protegido ahí.</p>
+    <p>La dejamos registrada como <strong>hipótesis descartada</strong> en lugar de borrarla. Un diagnóstico que solo muestra aciertos no es un diagnóstico: es una selección de lo que salió bien.</p>
+  </div>
+
+  <p>Resultado del diagnóstico: <strong>14 defectos confirmados y 1 hipótesis descartada</strong>.</p>
+
+  <h3>Los dos defectos más graves, para contar en la defensa</h3>
+
+  <p><strong>El reporte contable ilegible.</strong> El reporte que iba a administración mostraba el total facturado así:</p>
+  <pre><code>--- Facturado: $1.7E7</code></pre>
+  <p>Eso es notación científica: significa 1,7 por 10 elevado a 7, o sea 17 millones. Pasaba porque se pegaba el símbolo de peso a un número <code>double</code>, y Java pasa a esa notación a partir de diez millones. Un reporte contable que dice "1.7E7" es inservible. Ahora dice <code>$17.000.000,00</code>.</p>
+
+  <p><strong>Se cobra un destino y se envía a otro.</strong> Un cliente se mudaba de Mendoza a Córdoba y hacía un pedido nuevo. El sistema le <em>cobraba el flete de Córdoba</em> y le <em>mandaba el paquete al domicilio viejo de Mendoza</em>. No es un problema estético: es plata mal cobrada y un paquete que llega a donde no vive nadie.</p>
+</section>
+
+<section id="que-hicimos">
+  <h2>El antes y el después</h2>
+
+  <div class="cifras">
+    <div class="cifra"><span class="n">305</span><span class="et">líneas en la clase principal, antes</span></div>
+    <div class="cifra"><span class="n">6</span><span class="et">clases en el sistema base</span></div>
+    <div class="cifra"><span class="n">23</span><span class="et">clases después, con una responsabilidad cada una</span></div>
+    <div class="cifra"><span class="n">87→15</span><span class="et">líneas del método de registrar</span></div>
+    <div class="cifra"><span class="n">13→1</span><span class="et">parámetros de ese método</span></div>
+    <div class="cifra"><span class="n">119</span><span class="et">casos de prueba, todos en verde</span></div>
+  </div>
+
+  <p>El método de registrar un pedido pasó de 87 líneas a 15. No porque hayamos borrado lógica, sino porque cada paso ahora se lo pide al objeto que sabe hacerlo.</p>
+
+  <h3>Una corrección que no es estructural y hay que saber defender</h3>
+
+  <div class="alerta">
+    <span class="termino">Cuidado con esta</span>
+    <p>Cambiamos qué cuenta como "facturado". Antes era "todo lo que no está cancelado", así que un pedido recién ingresado que nadie pagó ya figuraba como facturación. Lo cambiamos a "desde que se cobra en adelante".</p>
+    <p><strong>Eso es un cambio de regla de negocio, no un refactoring.</strong> Hay que decirlo así. En un sistema real habría que confirmarlo con el área contable antes de tocarlo: puede ser que el criterio viejo fuera intencional y estemos rompiendo un reporte que alguien usa. Lo dejamos explícito en el código y documentado como decisión D13.</p>
+  </div>
+</section>
+
+<section id="red">
+  <h2>Cómo verificamos que no rompimos nada</h2>
+
+  <p>Tres mecanismos distintos, y conviene nombrar los tres porque cubren cosas diferentes.</p>
+
+  <h3>1. Las dos suites de pruebas</h3>
+  <p>119 casos en total. Ya explicados arriba.</p>
+
+  <h3>2. La sonda de regresión</h3>
+  <p>Un programa que <strong>vuelve a ejecutar los mismos escenarios del diagnóstico</strong> contra el sistema ya refactorizado. El criterio: un defecto no se declara corregido porque el refactoring "debería" haberlo arreglado, sino porque corremos el escenario que lo exhibía y el sistema ya no se comporta así.</p>
+
+  <h3>3. El compilador</h3>
+  <p>Este es el más fuerte y el que más impresiona si se explica bien.</p>
+
+  <p>Uno de los defectos era que desde afuera se podía manipular el estado interno del sistema. Podríamos haber agregado una validación que lo rechace mientras el programa corre. <strong>No hicimos eso.</strong></p>
+
+  <p>En su lugar, restringimos la visibilidad de esos métodos. La diferencia es grande: una validación se puede saltear y falla tarde, cuando el sistema ya está andando. La restricción de visibilidad <strong>la hace cumplir el compilador</strong>, antes de que el programa exista.</p>
+
+  <p>Escribimos una clase que intenta el ataque desde afuera. Esto es lo que responde el compilador:</p>
+
+  <pre><code>Ataque.java:9: error: cambiarEstadoA(EstadoPedido) is not public
+    in Pedido; cannot be accessed from outside package
+
+Ataque.java:10: error: asignarResponsable(String,String) is not
+    public in Pedido; cannot be accessed from outside package
+
+Ataque.java:11: error: actualizarDatosDeContacto(...) is not
+    public in Cliente; cannot be accessed from outside package
+
+3 errors</code></pre>
+
+  <div class="clave">
+    <span class="termino">Frase para la defensa</span>
+    <p>"El código que intenta corromper el sistema no llega a ejecutarse, porque no llega a compilar. Es la forma más fuerte de verificación que teníamos disponible."</p>
+  </div>
+
+  <p>Un detalle que conviene contar porque demuestra rigor: la primera vez que verificamos esto, lo hicimos con una clase que estaba <em>dentro</em> del mismo paquete. Compilaba, obviamente, y casi lo dimos por cerrado. Tuvimos que escribir una clase genuinamente externa para que la prueba valiera algo.</p>
+</section>
+
+<section id="review">
+  <h2>El code review</h2>
+  <p class="subtitulo-seccion">Séptima etapa de la consigna. Acá está el hallazgo más valioso del trabajo.</p>
+
+  <div class="definicion">
+    <span class="termino">Code review (revisión de código)</span>
+    <p>Revisar código buscando problemas con una lista de criterios definida de antemano, en vez de leerlo a ver qué aparece. La lista evita que la revisión dependa de la memoria o del humor del que revisa.</p>
+  </div>
+
+  <p>Lo importante: aplicamos el checklist sobre el código <strong>ya refactorizado</strong>, no sobre el original. El diagnóstico buscaba deuda heredada; esta revisión buscaba deuda <strong>que habíamos introducido nosotros</strong>.</p>
+
+  <p>Levantamos 14 observaciones. Antes de arreglar ninguna, escribimos el escenario que la reproducía y lo ejecutamos. <strong>Las 14 se reprodujeron. Cero falsos positivos.</strong></p>
+
+  <div class="alerta">
+    <span class="termino">El hallazgo central del trabajo</span>
+    <p><strong>Cuatro de los cinco hallazgos críticos son defectos que nuestro propio refactoring introdujo o reabrió.</strong></p>
+    <p>El más claro: al corregir "los datos del cliente nunca se actualizan", el Cliente pasó a ser modificable. Pero el Pedido le iba a buscar la provincia al Cliente en el momento de facturar. Resultado: un cliente que pedía a Mendoza y después a Córdoba dejaba el primer pedido <em>facturado con flete de Mendoza y listado como de Córdoba</em>.</p>
+    <p>Es exactamente el mismo defecto de "se cobra un destino y se envía a otro" que habíamos diagnosticado en el sistema original, reaparecido con el signo invertido, y puesto por nosotros.</p>
+  </div>
+
+  <h3>El quinto hallazgo crítico: la red de pruebas tenía un agujero</h3>
+
+  <p>Este es el mejor material de defensa que tiene el trabajo. Conviene contarlo entero.</p>
+
+  <p>El programa que corre las pruebas no recibe un resultado de cada suite: las ejecuta, captura lo que imprimen y <strong>cuenta marcadores de texto</strong>. Esa cuenta conocía dos marcadores, los dos únicos que existían cuando se escribió.</p>
+
+  <p>Después, al reformular los defectos ya corregidos, aparecieron dos marcadores nuevos. Nadie volvió a tocar el contador.</p>
+
+  <p>La primera consecuencia fue un número mal informado: la corrida decía 62 casos cuando la suite ejecuta 69. Ese número equivocado ya había viajado al informe y al README.</p>
+
+  <p>La segunda es considerablemente peor:</p>
+
+  <div class="alerta">
+    <span class="termino">Lo que estaba realmente roto</span>
+    <p>Uno de los marcadores nuevos es el que avisa que <strong>un defecto ya corregido volvió a aparecer</strong>. Tampoco se contaba.</p>
+    <p>Es decir: si una regresión ocurría, la suite la detectaba, la imprimía en pantalla, y <strong>la corrida terminaba igual en verde</strong>. La red de seguridad tenía un agujero exactamente del tamaño de lo que venía a vigilar.</p>
+  </div>
+
+  <p><strong>Cómo lo encontramos:</strong> cruzando dos números que tenían que coincidir. El total que informaba el programa principal (62) contra el que informaba la suite ejecutada por separado (69). Ninguna prueba podía detectarlo, porque el defecto estaba <em>en lo que cuenta las pruebas</em>.</p>
+
+  <p><strong>Cómo verificamos el arreglo:</strong> volvimos a introducir a mano uno de los defectos ya corregidos y corrimos la suite. Ahora reporta la reaparición, cuenta una falla y termina con error. Antes del arreglo, ese mismo escenario daba cero fallas. Después restauramos el archivo y confirmamos que vuelve a 119 en verde.</p>
+
+  <div class="clave">
+    <span class="termino">La conclusión del trabajo, en una frase</span>
+    <p>"Refactorizar con una red de pruebas reduce el riesgo de romper algo, pero no lo elimina. La red cubre lo que a alguien se le ocurrió cubrir. Y un número que nadie contrasta no es una medición: es una creencia."</p>
+  </div>
+</section>
+
+<section id="abierto">
+  <h2>El defecto que decidimos no corregir</h2>
+
+  <p>De los 14 defectos confirmados, corregimos 13. Uno quedó abierto a propósito, y hay que saber defender esa decisión porque es la que más puede ser cuestionada.</p>
+
+  <p><strong>El escenario:</strong> se reserva stock para un pedido. El depósito hace un recuento físico y fija la existencia real en el sistema. Después se cancela aquel pedido viejo. La cancelación repone la mercadería a ciegas, y aparecen unidades que nadie contó.</p>
+
+  <p><strong>La causa de fondo:</strong> el sistema no distingue entre stock <em>físico</em> y stock <em>reservado</em>. La mercadería del pedido cancelado nunca salió del depósito: ya estaba contada en el recuento. Al reponerla, se cuenta dos veces.</p>
+
+  <p><strong>Por qué no lo arreglamos:</strong> arreglarlo de verdad exige introducir la reserva como un concepto nuevo del sistema, con su propio ciclo de vida. Eso excede el alcance del trabajo, que era mejorar la calidad interna y no agregar funcionalidad.</p>
+
+  <p><strong>Por qué no lo parchamos igual:</strong> un parche taparía el síntoma en este escenario y dejaría el modelo igual de roto para los demás. Preferimos un defecto conocido, acotado y escrito, antes que un arreglo que dé una falsa sensación de resuelto.</p>
+
+  <div class="clave">
+    <span class="termino">Lo que lo convierte en una buena decisión y no en una excusa</span>
+    <p>Está <strong>congelado en una prueba</strong> que documenta el comportamiento defectuoso actual, y la corrida lo nombra explícitamente cada vez que termina en verde. Si algún día se implementan las reservas, esa prueba se va a poner en rojo, <em>y ese rojo va a ser la señal de que el defecto se corrigió</em>.</p>
+  </div>
+
+  <div class="alerta">
+    <span class="termino">La frase que hay que decir, aunque incomode</span>
+    <p>"Un defecto atenuado no es un defecto corregido. Partimos el método ambiguo en dos con nombres claros, y eso mejoró el diagnóstico, pero no arregló la aritmética. Fue tentador contarlo como resuelto. El resultado honesto es 13 de 14, no 14 de 14."</p>
+  </div>
+</section>
+
+<section id="demo">
+  <h2>Qué mostrar en vivo</h2>
+  <p class="subtitulo-seccion">Cuatro momentos, en este orden. Cada uno demuestra algo que no se puede demostrar hablando.</p>
+
+  <h4>1 · Que el sistema funciona</h4>
+  <pre><code>java -cp out pedidos.Main</code></pre>
+  <p>Se registran pedidos, cambian estados, sale el reporte. Esto es la calidad externa. <em>"Un usuario no tiene de qué quejarse."</em></p>
+
+  <h4>2 · Que por dentro estaba mal</h4>
+  <pre><code>git checkout estado-inicial</code></pre>
+  <p>Abrir <code>PedidoManager</code> y mostrar las 305 líneas y el comentario que confiesa la deuda. <em>"Esto es la calidad interna del mismo sistema que acaba de funcionar."</em></p>
+
+  <h4>3 · Que no rompimos nada</h4>
+  <pre><code>java -cp out pedidos.pruebas.CorridaDePruebas</code></pre>
+  <p>119 casos en verde, y la corrida nombrando el defecto que quedó abierto.</p>
+
+  <h4>4 · Que el encapsulamiento lo garantiza el compilador</h4>
+  <p>Mostrar el archivo <code>docs/evidencias/encapsulamiento-compilador.txt</code> con los tres errores. <em>"El ataque no llega a ejecutarse porque no llega a compilar."</em></p>
+
+  <div class="alerta">
+    <span class="termino">Antes de grabar o presentar</span>
+    <ul>
+      <li>Compilar y correr todo una vez, para que no haya sorpresas en cámara.</li>
+      <li>Tener una <strong>segunda copia</strong> del repositorio en otra carpeta ya puesta en <code>estado-inicial</code>, para mostrar el antes sin cambiar de versión en vivo.</li>
+      <li>Agrandar la fuente de la terminal y del editor: en video se ve mucho más chico.</li>
+      <li>Nombre completo visible, además de decirlo en voz alta.</li>
+    </ul>
+  </div>
+</section>
+
+<section id="preguntas">
+  <h2>Preguntas probables</h2>
+  <p class="subtitulo-seccion">Con la respuesta corta primero y el respaldo después. Hacé clic para abrir.</p>
+
+  <details class="pregunta">
+    <summary>¿Cuál es la diferencia entre calidad externa e interna?</summary>
+    <div class="cuerpo">
+      <p>La externa es lo que percibe el usuario: que funcione. La interna es cómo está escrito por dentro, y define cuánto cuesta cada cambio futuro.</p>
+      <p>Lo importante es que son independientes. Nuestro sistema tenía calidad externa buena y calidad interna mala el mismo día: funcionaba perfecto y tenía un método de 87 líneas con 13 parámetros.</p>
+    </div>
+  </details>
+
+  <details class="pregunta">
+    <summary>¿Qué es un refactoring y en qué se diferencia de corregir un error?</summary>
+    <div class="cuerpo">
+      <p>Un refactoring cambia la estructura interna sin cambiar lo que el sistema hace visto desde afuera. Corregir un defecto cambia el comportamiento a propósito.</p>
+      <p>Las hicimos en pasos separados y con commits separados. Si se mezclan, cuando algo falla no se puede distinguir "lo rompí sin querer" de "lo cambié a propósito".</p>
+    </div>
+  </details>
+
+  <details class="pregunta">
+    <summary>¿Por qué escribieron pruebas que fijan comportamientos incorrectos?</summary>
+    <div class="cuerpo">
+      <p>Son pruebas de caracterización, la técnica de Michael Feathers para código heredado sin pruebas. Documentan lo que el sistema <em>hace</em>, no lo que debería hacer.</p>
+      <p>Sin esa red, decir "lo refactoricé y sigue andando" no tiene respaldo. Si después de refactorizar una de esas pruebas se pone en rojo sin que la hayamos tocado, rompimos algo.</p>
+      <p>Cuando corregimos un defecto a propósito, la prueba se <strong>actualiza para registrar el cambio</strong>, y el commit explica por qué. Lo que nunca hicimos fue editarla para que pase.</p>
+    </div>
+  </details>
+
+  <details class="pregunta">
+    <summary>¿Cómo saben que no rompieron nada?</summary>
+    <div class="cuerpo">
+      <p>Tres mecanismos distintos:</p>
+      <ul>
+        <li>Las dos suites con significados opuestos: 119 casos.</li>
+        <li>La sonda de regresión, que vuelve a ejecutar los escenarios del diagnóstico contra el sistema nuevo.</li>
+        <li>El compilador, que rechaza el código que intenta corromper el estado interno.</li>
+      </ul>
+      <p>Y una advertencia honesta: eso reduce el riesgo, no lo elimina. El code review encontró defectos que las pruebas en verde no habían detectado.</p>
+    </div>
+  </details>
+
+  <details class="pregunta">
+    <summary>¿Por qué no usaron JUnit?</summary>
+    <div class="cuerpo">
+      <p>Para que compile con un Java limpio y sin descargar dependencias. Si el día de la corrección falla una descarga, el trabajo no se puede ejecutar, y lo que se evalúa es el análisis, no el andamiaje.</p>
+      <p>Lo que se pierde: ejecución selectiva de pruebas, reportes estándar e integración con herramientas de automatización. Está documentado como decisión D1.</p>
+    </div>
+  </details>
+
+  <details class="pregunta">
+    <summary>¿Qué principios SOLID aplicaron?</summary>
+    <div class="cuerpo">
+      <p>Cuatro de los cinco. Responsabilidad única al partir la clase grande; abierto/cerrado al mover la etiqueta de cada estado al enum; Liskov al unificar el comportamiento de los dos notificadores; inversión de dependencias al depender de la interfaz y no del servicio de mail.</p>
+      <p>Segregación de interfaces lo revisamos y no aplicaba: nuestra interfaz ya era mínima. Lo dejamos asentado como revisado.</p>
+    </div>
+  </details>
+</section>
+
+<section id="dificiles">
+  <h2>Preguntas difíciles</h2>
+  <p class="subtitulo-seccion">Las que pueden incomodar. En todas conviene reconocer el punto antes de responder.</p>
+
+  <details class="pregunta dificil">
+    <summary>Ustedes introdujeron defectos nuevos. ¿No significa que el refactoring estuvo mal hecho?</summary>
+    <div class="cuerpo">
+      <p>Significa que refactorizar código con deuda acumulada tiene riesgo real, incluso con red de pruebas. Lo que importa es que los encontramos nosotros, antes de la entrega, con un proceso de revisión definido.</p>
+      <p>Si no hubiéramos hecho el code review, el trabajo se habría entregado con 119 pruebas en verde y cuatro defectos críticos adentro. Esa es la lección principal del trabajo, y está en las conclusiones.</p>
+      <p>Lo que sí habría estado mal es ocultarlo.</p>
+    </div>
+  </details>
+
+  <details class="pregunta dificil">
+    <summary>Dejaron un defecto sin corregir. ¿No es trabajo incompleto?</summary>
+    <div class="cuerpo">
+      <p>Es una decisión documentada, no un olvido. La causa de fondo es que el sistema no modela stock reservado, y resolverlo exige agregar un concepto nuevo al dominio: eso es funcionalidad nueva, que es justamente lo que la consigna pedía no hacer.</p>
+      <p>Podríamos haberlo parchado para este escenario puntual. No lo hicimos porque dejaría el modelo igual de roto para los demás casos, con la apariencia de estar resuelto.</p>
+      <p>Está congelado en una prueba y la corrida lo nombra cada vez. No está escondido: está acotado y escrito.</p>
+    </div>
+  </details>
+
+  <details class="pregunta dificil">
+    <summary>Dicen que el comportamiento externo no cambió, pero cambiaron qué cuenta como facturado.</summary>
+    <div class="cuerpo">
+      <p>Correcto, y lo declaramos así en el informe: ese es un cambio de regla de negocio, no un refactoring. Es el único del trabajo.</p>
+      <p>Lo hicimos porque un pedido que nadie pagó figuraba como facturación, lo que infla cualquier proyección de ingresos. Pero está marcado como la decisión que en un sistema real habría que confirmar con el área contable antes de tocar: puede ser que el criterio viejo fuera intencional.</p>
+      <p>Lo dejamos explícito en el código, donde se puede discutir, en vez de implícito dentro de un bucle.</p>
+    </div>
+  </details>
+
+  <details class="pregunta dificil">
+    <summary>¿Cómo sé que entienden el código y no lo copiaron de una herramienta de IA?</summary>
+    <div class="cuerpo">
+      <p>Declaramos el uso de IA en el informe, con herramienta, finalidad y grado de intervención, más el anexo con los intercambios. En varios de esos intercambios se ve que <strong>no seguimos la recomendación</strong>: la respuesta sugería usar JUnit y no lo usamos; sugería separar repositorios y no los separamos; sugería afirmar "15 defectos corregidos" y el número real es 13 de 14.</p>
+      <p>Y sobre entender el código: podemos explicar por qué las transiciones del enum están en un bloque estático y no en el constructor (Java no permite que una constante se referencie antes de existir), por qué el stock se devuelve como copia <em>y</em> como vista de solo lectura, y cómo encontramos el defecto del contador de pruebas.</p>
+      <p>Esa última es la mejor respuesta, porque no se puede copiar: salió de cruzar dos números que no coincidían.</p>
+    </div>
+  </details>
+
+  <details class="pregunta dificil">
+    <summary>Si las pruebas tenían un agujero, ¿cómo confían en las 119 que están en verde?</summary>
+    <div class="cuerpo">
+      <p>Es la pregunta correcta, y la respuesta es que confiamos menos que antes de encontrarlo, no igual.</p>
+      <p>Lo que hicimos después de arreglarlo fue verificarlo de la única manera que sirve: volvimos a introducir a mano un defecto ya corregido y comprobamos que ahora la corrida falla y termina con error. Antes del arreglo, ese mismo escenario terminaba en verde.</p>
+      <p>Eso se llama prueba de mutación, y es lo que valida que una suite efectivamente detecta lo que dice detectar. Una suite en verde que nunca se vio fallar no demostró nada.</p>
+    </div>
+  </details>
+
+  <details class="pregunta dificil">
+    <summary>¿Qué harían distinto si empezaran de nuevo?</summary>
+    <div class="cuerpo">
+      <p>Dos cosas concretas.</p>
+      <p>Haríamos el code review <strong>antes</strong> y no al final. Cuatro de los cinco hallazgos críticos los introdujimos refactorizando, y si hubiéramos revisado después de cada etapa en vez de al cierre, los habríamos encontrado antes de que se acumularan.</p>
+      <p>Y validaríamos la propia herramienta de medición desde el principio. Dimos por bueno el número que imprimía el programa de pruebas durante todo el trabajo, sin contrastarlo contra nada. Estuvo mal desde que agregamos los marcadores nuevos.</p>
+    </div>
+  </details>
+</section>
+
+<section id="glosario">
+  <h2>Glosario</h2>
+  <p class="subtitulo-seccion">Todos los términos que pueden aparecer, en orden alfabético.</p>
+
+  <div class="tabla-caja">
+    <table>
+      <thead>
+        <tr><th>Término</th><th>Qué significa</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><strong>Caracterización</strong></td><td>Prueba que fija el comportamiento actual de un sistema, defectos incluidos, para detectar si un cambio lo alteró.</td></tr>
+        <tr><td><strong>Clase</strong></td><td>Unidad de organización del código. Agrupa datos y las operaciones que trabajan sobre esos datos.</td></tr>
+        <tr><td><strong>Code smell</strong></td><td>Síntoma en el código que indica un problema de diseño. No es un error; es una señal.</td></tr>
+        <tr><td><strong>Commit</strong></td><td>Un cambio guardado en el historial del proyecto, con un mensaje que explica qué se hizo y por qué.</td></tr>
+        <tr><td><strong>Compilador</strong></td><td>Programa que traduce el código a algo que la máquina ejecuta. Si encuentra errores, no genera nada: el programa no llega a existir.</td></tr>
+        <tr><td><strong>Deuda técnica</strong></td><td>Sobrecosto futuro que genera una solución apurada o mal estructurada.</td></tr>
+        <tr><td><strong>Encapsulamiento</strong></td><td>Esconder los datos internos de una clase para que solo se puedan modificar a través de operaciones controladas.</td></tr>
+        <tr><td><strong>Enum</strong></td><td>Lista cerrada de valores posibles. Si no está en la lista, el compilador lo rechaza.</td></tr>
+        <tr><td><strong>Git / GitHub</strong></td><td>Git lleva el historial de cambios del proyecto. GitHub es el sitio donde ese historial se publica.</td></tr>
+        <tr><td><strong>God Class</strong></td><td>Clase que concentra demasiadas responsabilidades distintas.</td></tr>
+        <tr><td><strong>Interfaz</strong></td><td>Contrato que define qué operaciones existen, sin definir cómo se implementan.</td></tr>
+        <tr><td><strong>Método</strong></td><td>Una operación dentro de una clase. Equivale a una función.</td></tr>
+        <tr><td><strong>Parámetro</strong></td><td>Dato que recibe un método para hacer su trabajo.</td></tr>
+        <tr><td><strong>Refactoring</strong></td><td>Cambiar la estructura interna sin cambiar el comportamiento externo.</td></tr>
+        <tr><td><strong>Regresión</strong></td><td>Algo que funcionaba y dejó de funcionar por un cambio posterior.</td></tr>
+        <tr><td><strong>SOLID</strong></td><td>Cinco principios de diseño orientado a objetos. Sigla formada por la inicial de cada uno.</td></tr>
+        <tr><td><strong>Suite de pruebas</strong></td><td>Conjunto de pruebas que se ejecutan juntas.</td></tr>
+        <tr><td><strong>Tag</strong></td><td>Marca sobre un punto del historial, para poder volver a ese estado exacto. La consigna pedía seis.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <p class="nota-pie">Todo lo afirmado en esta guía está respaldado en el repositorio: las evidencias de ejecución en <code>docs/evidencias/</code>, las decisiones en <code>docs/decisiones-tecnicas.md</code> y el checklist en <code>docs/checklist-code-review.md</code>.</p>
+</section>
+
+</main>
+</div>
+</div>
+</body>
+</html>

@@ -15,7 +15,7 @@ no sobre el sistema base. Esa distinción importa: el diagnóstico inicial
 4. Cada hallazgo confirmado se corrigió y se le dejó un caso de prueba que lo
    vigile.
 
-De 13 observaciones levantadas, las 13 se reprodujeron. **Cero falsos
+De 14 observaciones levantadas, las 14 se reprodujeron. **Cero falsos
 positivos.** Eso no habla bien de la revisión: habla mal del código que
 revisamos, que era el nuestro.
 
