@@ -65,6 +65,20 @@
   [OK]    el cancelado no suma al facturado
   [OK]    marca los urgentes
   [OK]    el pedido urgente existe
+  [CORREGIDO] el urgente grande no pagaba recargo
+  antes: 34.000,00   ahora: 36.250,00
+  [CORREGIDO] un subtotal de exactamente 25000 pagaba flete completo
+  antes: 1.200,00   ahora: 0,00
+  [CORREGIDO] se aceptaba un pedido de cantidad cero
+  antes: true   ahora: false
+  [CORREGIDO] 'retiro' en minuscula cobraba flete
+  antes: 1.200,00   ahora: 0,00
+  [CORREGIDO] cargar mercaderia reemplazaba el stock en vez de sumarlo
+  antes: 20   ahora: 70
+  [CORREGIDO] un pedido rechazado dejaba el cliente dado de alta
+  antes: true   ahora: false
+  [CORREGIDO] un pedido PENDIENTE ya contaba como facturado
+  antes: 8.500,00   ahora: 0,00
   [OK]    D-03 ABIERTO: cancelar tras un recuento inventa unidades
   =========================================================
   =========================================================
@@ -124,7 +138,7 @@
 #########################################################
 
   CARACTERIZACION DEL SISTEMA BASE
-    62 pasadas, 0 fallidas
+    69 pasadas, 0 fallidas
     Fija el comportamiento actual. Debe estar siempre en verde:
     un rojo aca es una regresion introducida por un refactoring.
 

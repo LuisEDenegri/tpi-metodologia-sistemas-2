@@ -108,6 +108,52 @@ Un cambio se considera aceptado cuando cumple los cinco:
       → **autohallazgo**: un caso afirmaba `stockDe(...) >= 0`, que pasa aunque la mutación externa tenga éxito. Se cambió por comparación contra el valor esperado capturado antes.
 - [x] La corrida en verde no afirma más de lo que verificó
       → **autohallazgo**: la suite decía "sin defectos pendientes" con D-03 abierto. Ahora lo nombra siempre.
+- [x] **El runner cuenta todos los veredictos que las suites emiten**
+      → **hallazgo C-5, el más grave de toda la revisión.** Ver abajo.
+
+#### C-5 — El contador de la corrida ignoraba dos veredictos
+
+`CorridaDePruebas` no ejecuta las suites y recibe un resultado: las invoca por
+reflexión, captura lo que imprimen y **cuenta marcadores de texto**. Esa
+detección conocía `[OK]` y `[FALLA]`, los dos únicos veredictos que existían
+cuando se escribió.
+
+Después, al reformular los defectos corregidos, el `Verificador` ganó dos
+veredictos nuevos: `[CORREGIDO]` y `[REAPARECIO]`. Nadie volvió a tocar el
+contador.
+
+Consecuencias, en orden de gravedad:
+
+1. Los siete casos `[CORREGIDO]` no se contaban. La corrida informaba **62**
+   casos de caracterización cuando la suite ejecuta **69**. El número que
+   figuraba en el informe, en el README y en el guión del video estaba mal.
+2. **Mucho peor:** un `[REAPARECIO]` tampoco se contaba. Si un defecto ya
+   corregido volvía, la suite lo detectaba, lo imprimía por pantalla, y la
+   corrida terminaba **igual en verde, con exit code 0**. La red de seguridad
+   tenía un agujero exactamente del tamaño de lo que venía a vigilar.
+
+**Cómo se detectó.** Comparando el total que informa `CorridaDePruebas` contra
+el que informa `CaracterizacionBase` ejecutada por separado: 62 contra 69. Dos
+fuentes que cuentan lo mismo y no coinciden. Ninguna prueba podía detectar
+esto, porque el defecto estaba **en el que cuenta las pruebas**.
+
+**Cómo se verificó la corrección.** Con una prueba de mutación manual: se
+reintrodujo a mano el defecto D-01 en `PoliticaDeCostos` y se corrió la suite.
+
+```
+  [REAPARECIO] el urgente grande no pagaba recargo
+  [FALLA] sobre el umbral el urgente igual paga el adicional de urgencia
+  [FALLA] un pedido urgente nunca cuesta lo mismo que uno normal
+    CARACTERIZACION DEL SISTEMA BASE: 68 pasadas, 1 fallidas
+  exit code = 1
+```
+
+Antes del arreglo, ese mismo escenario daba 0 fallidas y exit code 0. Después
+se restauró `PoliticaDeCostos` y se confirmó que vuelve a 69/50 y exit 0.
+
+**Lo que deja.** Es el tercer caso del trabajo en que el instrumento de medición
+estaba roto, y los tres se encontraron igual: cruzando dos fuentes que deberían
+coincidir. Un número que nadie contrasta no es una medición, es una creencia.
 
 ### 10. Repositorio
 
@@ -120,16 +166,18 @@ Un cambio se considera aceptado cuando cumple los cinco:
 
 | Severidad | Levantados | Confirmados | Corregidos |
 |---|---|---|---|
-| Crítico | 4 | 4 | 4 |
+| Crítico | 5 | 5 | 5 |
 | Importante | 6 | 6 | 6 |
 | Sugerencia | 3 | 3 | 3 |
 
-El hallazgo más incómodo, y el más útil para el trabajo: **tres de los cuatro
+El hallazgo más incómodo, y el más útil para el trabajo: **cuatro de los cinco
 críticos son defectos que el refactoring introdujo o reabrió mientras
 corregía otros.** I-1 es literalmente el defecto "se cobra un destino y se
-envía a otro" del sistema base, reaparecido con el signo invertido.
+envía a otro" del sistema base, reaparecido con el signo invertido. Y C-5
+estaba en la propia red de pruebas: el instrumento con el que medíamos todo lo
+demás.
 
-Esa es la contracara honesta de las 112 pruebas en verde: refactorizar con red
+Esa es la contracara honesta de las 119 pruebas en verde: refactorizar con red
 de pruebas **reduce** el riesgo, no lo elimina. La red cubre lo que alguien
 pensó en cubrir. Un code review independiente encuentra lo que la red no
 pensó.

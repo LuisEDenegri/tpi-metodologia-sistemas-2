@@ -78,7 +78,7 @@ java -cp out pedidos.pruebas.CorridaDePruebas              # resumen
 java -cp out pedidos.pruebas.CorridaDePruebas --detallado  # caso por caso
 ```
 
-Resultado esperado: **62 casos de caracterización + 50 de comportamiento
+Resultado esperado: **69 casos de caracterización + 50 de comportamiento
 correcto, todos en verde**, y D-03 nombrado como defecto abierto por decisión
 explícita (ver `docs/decisiones-tecnicas.md`, D11).
 
@@ -140,7 +140,7 @@ git log --oneline estado-inicial..estado-refactorizado
 | Corregidos y verificados por ejecución | 13 |
 | Abiertos por decisión explícita | 1 (D-03, ver `docs/decisiones-tecnicas.md`) |
 | Hipótesis descartadas, sin regresión | 1 |
-| Casos de prueba | 112 |
+| Casos de prueba | 119 |
 
 El code review posterior al refactoring levantó 13 observaciones y las 13 se
 reprodujeron ejecutando código: cero falsos positivos. **Tres de los cuatro

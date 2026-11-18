@@ -50,7 +50,7 @@ Lo que nunca se hace es editarlo para que pase.
 
 ## D3 — Dos suites separadas, no una
 
-**Decisión.** `CaracterizacionBase` (62 casos) y `ComportamientoCorrecto` (50
+**Decisión.** `CaracterizacionBase` (69 casos) y `ComportamientoCorrecto` (50
 casos) son suites distintas con semánticas opuestas.
 
 | Suite | Arranca | Un rojo significa |

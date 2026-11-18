@@ -122,19 +122,56 @@ public class CorridaDePruebas {
         Resultado r = new Resultado();
         for (String linea : salida.split("\n")) {
             String l = linea.trim();
-            boolean esDePrueba = l.startsWith("[OK]") || l.startsWith("[FALLA]");
-            if (detallado && (esDePrueba || l.startsWith("esperado:")
-                    || l.startsWith("obtenido:") || l.startsWith("==="))) {
+            if (detallado && (esMarcador(l) || l.startsWith("esperado:")
+                    || l.startsWith("obtenido:") || l.startsWith("antes:")
+                    || l.startsWith("===") || l.startsWith("el defecto volvio:"))) {
                 System.out.println("  " + l);
             }
-            if (l.startsWith("[OK]")) r.pasadas++;
-            if (l.startsWith("[FALLA]")) {
+            if (l.startsWith("[OK]") || l.startsWith("[CORREGIDO]")) {
+                r.pasadas++;
+            }
+            if (l.startsWith("[FALLA]") || l.startsWith("[REAPARECIO]")) {
                 r.fallidas++;
                 if (!detallado) {
-                    System.out.println("  [FALLA] " + l.substring(7).trim());
+                    System.out.println("  " + l);
                 }
             }
         }
         return r;
+    }
+
+    /**
+     * Los cuatro veredictos que imprime Verificador.
+     *
+     * DEFECTO CORREGIDO EN ESTA ETAPA. Antes esta deteccion estaba escrita
+     * en linea y solo conocia [OK] y [FALLA], que eran los unicos veredictos
+     * que existian cuando se escribio. Al agregar yaNoOcurre() aparecieron
+     * [CORREGIDO] y [REAPARECIO], y nadie volvio a tocar el contador.
+     *
+     * Consecuencias, en orden de gravedad:
+     *
+     *   1. Los siete casos [CORREGIDO] no se contaban. La corrida informaba
+     *      62 casos de caracterizacion cuando la suite ejecuta 69. El numero
+     *      que figuraba en el informe estaba mal.
+     *
+     *   2. Mucho peor: un [REAPARECIO] tampoco se contaba. Si un defecto ya
+     *      corregido volvia, la suite lo detectaba, lo imprimia por pantalla
+     *      y la corrida terminaba igual EN VERDE, con exit code 0. La red de
+     *      seguridad tenia un agujero exactamente del tamano de lo que venia
+     *      a vigilar.
+     *
+     * Se detecto comparando el total que informa CorridaDePruebas contra el
+     * que informa la suite ejecutada por separado: 62 contra 69. Dos fuentes
+     * que cuentan lo mismo y no coinciden.
+     *
+     * ponytail: la causa de fondo es que esta clase cuenta parseando texto en
+     * vez de recibir el Resultado de la suite. Con JUnit no existiria. Se
+     * deja asi porque las suites son main() ejecutables por separado, que es
+     * una propiedad que queriamos; pero el precio es este, y ya se cobro una
+     * vez. Si aparece un quinto veredicto, hay que tocar aca tambien.
+     */
+    static boolean esMarcador(String linea) {
+        return linea.startsWith("[OK]") || linea.startsWith("[FALLA]")
+                || linea.startsWith("[CORREGIDO]") || linea.startsWith("[REAPARECIO]");
     }
 }
