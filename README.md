@@ -1,6 +1,8 @@
 # Sistema de Gestión de Pedidos — Distribuidora Cuyo
 
-> **Video de defensa y demostración:** _enlace pendiente, se publica junto con el video_
+> **Video de defensa y demostración: [https://youtu.be/7AjwRw2wWU0](https://youtu.be/7AjwRw2wWU0)**
+>
+> [![Ver el video de defensa en YouTube](https://img.youtube.com/vi/7AjwRw2wWU0/hqdefault.jpg)](https://youtu.be/7AjwRw2wWU0)
 >
 > **Informe:** [`docs/informe/Informe_TPI_MS2.pdf`](docs/informe/Informe_TPI_MS2.pdf)
 >
