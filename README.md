@@ -1,5 +1,11 @@
 # Sistema de Gestión de Pedidos — Distribuidora Cuyo
 
+> **Video de defensa y demostración:** _enlace pendiente, se publica junto con el video_
+>
+> **Informe:** [`docs/informe/Informe_TPI_MS2.pdf`](docs/informe/Informe_TPI_MS2.pdf)
+>
+> Integrantes: Luis Denegri · Tomás Saavedra — Comisión 15
+
 Trabajo Práctico Integrador de **Metodología de Sistemas II** — Tecnicatura
 Universitaria en Programación a Distancia, UTN.
 
